@@ -24,7 +24,9 @@ namespace Formacao2021.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<AppDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<AppDBContext>();
+
+            services.AddIdentity<AppUser, AppRole>()
+                .AddEntityFrameworkStores<AppDBContext>();
 
             services.Configure<IdentityOptions>(options =>
             {
