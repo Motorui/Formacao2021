@@ -1,0 +1,74 @@
+﻿@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@UhsModal" role="dialog" id="uhModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle>@CustomHeader</ModalTitle>
+            <CloseButton Clicked="@(() => CloseUhModal("uhModal"))" />
+        </ModalHeader>
+        <EditForm Model="@ModelUh" OnValidSubmit="@HandleValidSubmit">
+            <ModalBody>
+                <DataAnnotationsValidator />
+                <input type="hidden" @bind-value="@ModelUh.UhID" />
+                <Field>
+                    <FieldLabel>Nome</FieldLabel>
+                    <TextEdit @bind-Text="@ModelUh.UhNome" MaxLength="25">
+                        <FieldHelp>Inserir nome da unidade de handling</FieldHelp>
+                    </TextEdit>
+                    <ValidationMessage For="@(() => ModelUh.UhNome)" />
+                </Field>
+                <Field>
+                    <FieldLabel>IATA</FieldLabel>
+                    <TextEdit @bind-Text="@ModelUh.UhIATA" MaxLength="3">
+                        <FieldHelp>Inserir o código IATA</FieldHelp>
+                    </TextEdit>
+                    <ValidationMessage For="@(() => ModelUh.UhIATA)" />
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Tooltip Text="Gravar">
+                    <Button Color="Color.Success" Type="ButtonType.Submit">
+                        <Icon Name="IconName.Save" /> Submeter
+                    </Button>
+                </Tooltip>
+                <Tooltip Text="Fechar">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseUhModal("uhModal"))">
+                        <Icon Name="IconName.StepBackward" /> Cancelar
+                    </Button>
+                </Tooltip>
+            </ModalFooter>
+        </EditForm>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal UhsModal;
+    [Parameter] public Action DataChanged { get; set; }
+    [Parameter] public RenderFragment CustomHeader { get; set; }
+    [Parameter] public Uh ModelUh { get; set; }
+
+    private async void HandleValidSubmit()
+    {
+        if (ModelUh.UhID == Guid.Empty)
+        {
+            await http.PostAsJsonAsync("api/Uh", ModelUh);
+            Toaster.Success("UH adicionada com sucesso", "Sucesso!");
+        }
+        else
+        {
+            await http.PutAsJsonAsync("api/Uh", ModelUh);
+            Toaster.Info("UH editada com sucesso", "Sucesso!");
+        }
+
+        await CloseUhModal("uhModal");
+        DataChanged?.Invoke();
+    }
+
+    private async Task CloseUhModal(string modalId)
+    {
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}

@@ -1,0 +1,51 @@
+﻿@inject IJSRuntime _jsRuntime
+
+<Modal @ref="@ConfirmDeleteModal" role="dialog" id="confirmDeleteModal">
+    <ModalBackdrop />
+    <ModalContent IsCentered="true">
+        <ModalHeader>
+            <ModalTitle>Confirmar!</ModalTitle>
+            <CloseButton Clicked="@(() => CloseGrupoModal("confirmDeleteModal"))" />
+        </ModalHeader>
+        <ModalBody>
+            <div>
+                @ConfirmText
+            </div>
+        </ModalBody>
+        <ModalFooter>
+            <Tooltip Text="Apagar">
+                <Button Color="Color.Success" @onclick="OnClick">
+                    <Icon Name="IconName.Save" /> Sim
+                </Button>
+            </Tooltip>
+            <Tooltip Text="Fechar">
+                <Button Color="Color.Warning" Clicked="@(() => CloseGrupoModal("confirmDeleteModal"))">
+                    <Icon Name="IconName.StepBackward" /> Cancelar
+                </Button>
+            </Tooltip>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    private Modal ConfirmDeleteModal;
+    [Parameter] public Guid Id { get; set; }
+    [Parameter] public RenderFragment ConfirmText { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    private Dictionary<string, object> cdBtnConfig(string title, string ddismiss)
+    {
+        var btn = new Dictionary<string, object>()
+    {
+            { "title", title},
+            { "data-dismiss", ddismiss}
+        };
+
+        return btn;
+    }
+
+    private async Task CloseGrupoModal(string modalId)
+    {
+        await _jsRuntime.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}

@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30503.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Formacao2021.Server", "Formacao2021\Server\Formacao2021.Server.csproj", "{B0378C22-9809-4F23-A0EE-D3F6F5795B2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formacao2021.Server", "Formacao2021\Server\Formacao2021.Server.csproj", "{B0378C22-9809-4F23-A0EE-D3F6F5795B2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Formacao2021.Client", "Formacao2021\Client\Formacao2021.Client.csproj", "{64FF2E49-FAE1-48AD-B1EC-EB4CF73AD081}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formacao2021.Client", "Formacao2021\Client\Formacao2021.Client.csproj", "{64FF2E49-FAE1-48AD-B1EC-EB4CF73AD081}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Formacao2021.Shared", "Formacao2021\Shared\Formacao2021.Shared.csproj", "{4B290CC0-2D96-4E4B-8605-F925B4B7AD53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formacao2021.Shared", "Formacao2021\Shared\Formacao2021.Shared.csproj", "{4B290CC0-2D96-4E4B-8605-F925B4B7AD53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

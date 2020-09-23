@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Formacao2021.Shared.Models.Tabelas
 {
@@ -8,13 +9,24 @@ namespace Formacao2021.Shared.Models.Tabelas
     {
         [Key]
         public Guid UhID { get; set; }
-        [Required(ErrorMessage = "O campo Nome é obrigatório"), Display(Name = "Nome:")]
-        [StringLength(10, ErrorMessage = "O campo {0} deve de conter entre {2} e {1} caracteres.", MinimumLength = 3)]
-        public string UhNome { get; set; }
 
+        private string _nome;
+        [Required(ErrorMessage = "O campo Nome é obrigatório"), Display(Name = "Nome:")]
+        [StringLength(25, ErrorMessage = "O campo {0} deve de conter entre {2} e {1} caracteres.", MinimumLength = 3)]
+        public string UhNome
+        {
+            get => _nome;
+            set => _nome = value?.ToUpper(CultureInfo.InvariantCulture);
+        }
+
+        private string _iata;
         [Required(ErrorMessage = "O campo IATA é obrigatório"), Display(Name = "IATA:")]
         [StringLength(3, ErrorMessage = "O campo {0} deve de conter entre {2} e {1} caracteres.", MinimumLength = 3)]
-        public string UhIATA { get; set; }
+        public string UhIATA
+        {
+            get => _iata;
+            set => _iata = value?.ToUpper(CultureInfo.InvariantCulture);
+        }
 
         #region Relações
         public virtual ICollection<MarcacaoInicial> MarcacoesIniciais { get; set; }

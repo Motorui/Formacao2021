@@ -1,0 +1,282 @@
+﻿@using Microsoft.AspNetCore.Components
+@using System.Collections.Generic
+@using Newtonsoft.Json
+
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject AppStateProvider authStateProvider
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@UsersModal" role="dialog" id="userModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Large">
+        <ModalHeader>
+            <ModalTitle>@CustomHeader</ModalTitle>
+            <CloseButton Clicked="@(() => CloseUserModal("userModal"))" />
+        </ModalHeader>
+        <EditForm Model="@ModelUser" OnValidSubmit="@HandleValidSubmit">
+            <ModalBody>
+                <DataAnnotationsValidator />
+                <input type="hidden" @bind-value="@ModelUser.Id" />
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Nome</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <TextEdit @bind-Text="@ModelUser.Name" />
+                        <ValidationMessage For="@(() => ModelUser.Name)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">UserName</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <TextEdit @bind-Text="@ModelUser.UserName" />
+                        <ValidationMessage For="@(() => ModelUser.UserName)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Email</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <TextEdit @bind-Text="@ModelUser.Email" Role="TextRole.Email" />
+                        <ValidationMessage For="@(() => ModelUser.Email)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Password</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <TextEdit Role="TextRole.Password" @bind-Text="@ModelUser.Password" />
+                        <ValidationMessage For="@(() => ModelUser.Password)" />
+                        <p>
+                            <span style="color:red">@notNull</span>
+                        </p>
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Confirmar password</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <TextEdit Role="TextRole.Password" @bind-Text="@ModelUser.PasswordConfirm" />
+                        <ValidationMessage For="@(() => ModelUser.PasswordConfirm)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Tipo</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <Select @bind-SelectedValue="@OwnedRoleId">
+                            @if (RoleList != null)
+                            {
+                                @foreach (var role in RoleList)
+                                {
+                                    <SelectItem Value="@role.Id">@role.Name</SelectItem>
+                                }
+                            }
+                        </Select>
+                        <small class="text-muted">Selecionar Grupo de Empresas</small>
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    @if (SelectedIds != null)
+                    {
+                        <FieldLabel ColumnSize="ColumnSize.Is2">UH's</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is10">
+                            <CheckBoxList Data="@UhList" TextField="@((item)=>item.UhNome)"
+                                          ValueField="@((item)=>item.UhID)" SelectedValues="@SelectedIds" />
+                        </FieldBody>
+                    }
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <p>
+                    <span style="color:red">@strError</span>
+                </p>
+                <Tooltip Text="Gravar">
+                    <Button Color="Color.Success" Type="ButtonType.Submit">
+                        <Icon Name="IconName.Save" /> Submeter
+                    </Button>
+                </Tooltip>
+                <Tooltip Text="Fechar">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseUserModal("userModal"))">
+                        <Icon Name="IconName.StepBackward" /> Cancelar
+                    </Button>
+                </Tooltip>
+            </ModalFooter>
+        </EditForm>
+    </ModalContent>
+</Modal>
+
+@code {
+    private Modal UsersModal;
+
+    [Parameter] public RegisterUser ModelUser { get; set; }
+    [Parameter] public Uh[] UhList { get; set; }
+    [Parameter] public RegisterRoles[] RoleList { get; set; }
+    [Parameter] public RegisterUserRole[] UserRoles { get; set; }
+    [Parameter] public RegisterUserUh[] UserUhs { get; set; }
+
+    [Parameter] public Action DataChanged { get; set; }
+    [Parameter] public RenderFragment CustomHeader { get; set; }
+    [Parameter] public bool IsEdit { get; set; }
+
+    RegisterUser registerUser { get; set; } = new RegisterUser();
+    RegisterUserRole registerUserRole { get; set; } = new RegisterUserRole();
+    RegisterUserUh registerUserUh { get; set; } = new RegisterUserUh();
+
+    public Guid OwnedRoleId = new Guid();
+    protected List<Guid> SelectedIds = new List<Guid>();
+    Guid UserID = Guid.Empty;
+
+    // Para guardar erros
+    string strError = "";
+    string notNull = "";
+
+    protected override void OnParametersSet()
+    {
+        if (IsEdit)
+        {
+            UserID = ModelUser.Id;
+
+            SelectedIds = UserUhs.Where(i => i.UserId == UserID).Select(i => i.UhID).ToList();
+            OwnedRoleId = UserRoles.Where(i => i.UserId == UserID).Select(i => i.RoleId).FirstOrDefault();
+        }
+        else
+        {
+            SelectedIds = new List<Guid>();
+            OwnedRoleId = new Guid("3b04aa8e-4307-4711-93a4-e2fb2f09f5a5");
+        }
+    }
+
+    private async void HandleValidSubmit()
+    {
+        try
+        {
+            if (IsEdit)
+            {
+                var user = await http.GetFromJsonAsync<RegisterUser>($"api/Auth/getuser/{ModelUser.Id}");
+
+                user.Name = ModelUser.Name;
+                user.UserName = ModelUser.UserName;
+                user.Email = ModelUser.Email;
+
+                if (ModelUser.Password != null)
+                {
+                    user.Password = ModelUser.Password;
+                }
+                if (ModelUser.PasswordConfirm != null)
+                {
+                    user.PasswordConfirm = ModelUser.PasswordConfirm;
+                }
+
+                var response = await http.PutAsJsonAsync("api/auth/update", user);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await http.DeleteAsync($"api/auth/deleteuseruhs/{ModelUser.Id}");
+                    await http.DeleteAsync($"api/auth/deleteuserroles/{ModelUser.Id}");
+
+                    if (SelectedIds != null)
+                    {
+                        foreach (var ownedUh in SelectedIds)
+                        {
+                            RegisterUserUh registerUserUh = new RegisterUserUh()
+                            {
+                                UhID = ownedUh,
+                                UserId = user.Id
+                            };
+                            await http.PostAsJsonAsync("api/auth/registeruseruhs", registerUserUh);
+                        }
+                    }
+
+                    if (OwnedRoleId != null || OwnedRoleId != Guid.Empty)
+                    {
+                        RegisterUserRole registerUserRole = new RegisterUserRole()
+                        {
+                            RoleId = OwnedRoleId,
+                            UserId = user.Id
+                        };
+                        await http.PostAsJsonAsync("api/auth/registeruserroles", registerUserRole);
+                    }
+
+                }
+                else
+                {
+                    strError = "!ERRO! :" + response.StatusCode.ToString();
+                    // Keep the popup opened
+                    return;
+                }
+
+                await Task.Delay(100);
+                Toaster.Success("Utilizador editado com sucesso", "Sucesso!");
+
+            }
+            else
+            {
+                if (ModelUser.Password == null)
+                {
+                    notNull = "Por favor insira uma password";
+                    // Keep the popup opened
+                    return;
+                }
+
+                // Insert new user
+                var NewUser = new RegisterUser
+                {
+                    Name = ModelUser.Name,
+                    UserName = ModelUser.UserName,
+                    Email = ModelUser.Email,
+                    Password = ModelUser.Password,
+                    PasswordConfirm = ModelUser.PasswordConfirm
+                };
+
+                var response = await http.PostAsJsonAsync("api/auth/register", NewUser);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var users = await http.GetFromJsonAsync<RegisterUser[]>("api/auth/get");
+                    UserID = users.Where(n => n.UserName == ModelUser.UserName).Select(i => i.Id).FirstOrDefault();
+                    if (SelectedIds != null)
+                    {
+                        foreach (var ownedUh in SelectedIds)
+                        {
+                            RegisterUserUh registerUserUh = new RegisterUserUh()
+                            {
+                                UhID = ownedUh,
+                                UserId = UserID
+                            };
+                            await http.PostAsJsonAsync("api/auth/registeruseruhs", registerUserUh);
+                        }
+                    }
+
+                    if (OwnedRoleId != null || OwnedRoleId != Guid.Empty)
+                    {
+                        RegisterUserRole registerUserRole = new RegisterUserRole()
+                        {
+                            RoleId = OwnedRoleId,
+                            UserId = UserID
+                        };
+                        await http.PostAsJsonAsync("api/auth/registeruserroles", registerUserRole);
+                    }
+
+                }
+                else
+                {
+                    strError = "!ERRO! :" + response.StatusCode.ToString();
+                    // Keep the popup opened
+                    return;
+                }
+
+                await Task.Delay(100);
+                Toaster.Success("Utilizador adicionado com sucesso", "Sucesso!");
+            }
+
+            await CloseUserModal("userModal");
+            DataChanged?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            strError = ex.GetBaseException().Message;
+        }
+    }
+
+    private async Task CloseUserModal(string modalId)
+    {
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+
+}

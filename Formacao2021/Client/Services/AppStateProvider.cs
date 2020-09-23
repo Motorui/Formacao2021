@@ -36,7 +36,7 @@ namespace Formacao2021.Client.Services
 
             return new AuthenticationState(new ClaimsPrincipal(identity));
         }
-
+        #region User
         private async Task<CurrentUser> GetCurrentUser()
         {
             if (_currentUser != null && _currentUser.IsAuthenticated) return _currentUser;
@@ -54,10 +54,57 @@ namespace Formacao2021.Client.Services
             await api.Login(loginParameters);
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
-        public async Task Register(RegisterRequest registerParameters)
+        public async Task Register(RegisterUser registerParameters)
         {
             await api.Register(registerParameters);
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
+        public async Task Update(RegisterUser registerParameters)
+        {
+            await api.Update(registerParameters);
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+        public async Task Delete(Guid id)
+        {
+            await api.Delete(id);
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+        #endregion
+        #region Roles
+        public async Task GetRoles()
+        {
+            await api.GetRoles();
+        }
+        public async Task GetUserRoles()
+        {
+            await api.GetUserRoles();
+        }
+        public async Task RegisterUserRoles(RegisterUserRole registerParameters)
+        {
+            await api.RegisterUserRoles(registerParameters);
+            //NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+        public async Task DeleteUserRoles(Guid id)
+        {
+            await api.DeleteUserRoles(id);
+            //NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+        #endregion
+        #region UserUhs
+        public async Task GetUserUhs()
+        {
+            await api.GetUserUhs();
+        }
+        public async Task RegisterUserUhs(RegisterUserUh registerParameters)
+        {
+            await api.RegisterUserUhs(registerParameters);
+            //NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+        public async Task DeleteUserUhs(Guid id)
+        {
+            await api.DeleteUserUhs(id);
+            //NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+        #endregion
     }
 }

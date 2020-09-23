@@ -1,3 +1,6 @@
+using Blazorise;
+using Blazorise.Bootstrap;
+using Blazorise.Icons.FontAwesome;
 using Formacao2021.Client.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -5,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Sotsera.Blazor.Toaster.Core.Models;
 
 namespace Formacao2021.Client
 {
@@ -15,6 +19,22 @@ namespace Formacao2021.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
 
+            builder.Services.AddToaster(config =>
+            {
+                //example customizations
+                config.PositionClass = Defaults.Classes.Position.TopCenter;
+                config.PreventDuplicates = true;
+                config.NewestOnTop = false;
+            });
+
+            builder.Services
+             .AddBlazorise(options =>
+             {
+                 options.ChangeTextOnKeyPress = true;
+             })
+             .AddBootstrapProviders()
+             .AddFontAwesomeIcons();
+
             builder.Services.AddOptions();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<AppStateProvider>();
@@ -23,7 +43,13 @@ namespace Formacao2021.Client
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-            await builder.Build().RunAsync();
+            var host = builder.Build();
+
+            host.Services
+              .UseBootstrapProviders()
+              .UseFontAwesomeIcons();
+
+            await host.RunAsync();
         }
     }
 }

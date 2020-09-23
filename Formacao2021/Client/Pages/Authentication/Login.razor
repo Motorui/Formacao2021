@@ -4,34 +4,41 @@
 @inject NavigationManager navigationManager
 @inject AppStateProvider authStateProvider
 
-<h1 class="h2 font-weight-normal login-title">
-    Login
-</h1>
-
-<EditForm class="form-signin" OnValidSubmit="OnSubmit" Model="loginRequest">
-    <DataAnnotationsValidator />
-
-    <label for="inputUsername" class="sr-only">User Name</label>
-    <InputText id="inputUsername" class="form-control" @bind-Value="loginRequest.UserName" autofocus placeholder="Username" />
-    <ValidationMessage For="@(() => loginRequest.UserName)" />
-
-    <label for="inputPassword" class="sr-only">Password</label>
-    <InputText type="password" id="inputPassword" class="form-control" placeholder="Password" @bind-Value="loginRequest.Password" />
-    <ValidationMessage For="@(() => loginRequest.Password)" />
-
-    <div class="form-check m-3">
-        <InputCheckbox id="inputRememberMe" class="form-check-input" @bind-Value="@loginRequest.RememberMe" />
-        <label class="form-check-label" for="inputRememberMe">Remember Me</label>
+<link href="css/login.css" rel="stylesheet" />
+<div class="sidenav">
+    <div class="login-main-text">
+        <h2>Formação <strong>port</strong>way<br> 2021</h2>
+        <p>Por favor faz login.</p>
+        <p></p>
     </div>
+</div>
+<div class="main">
+    <div class="col-md-6 col-sm-12">
+        <div class="login-form">
+            <EditForm class="form-signin" OnValidSubmit="OnSubmit" Model="loginRequest">
+                <DataAnnotationsValidator />
 
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                <label for="inputUsername" class="sr-only">Username</label>
+                <InputText id="inputUsername" class="form-control" @bind-Value="loginRequest.UserName" autofocus placeholder="Username" />
+                <ValidationMessage For="@(() => loginRequest.UserName)" />
 
-    <label class="text-danger">@error</label>
+                <label for="inputPassword" class="sr-only">Password</label>
+                <InputText type="password" id="inputPassword" class="form-control" placeholder="Password" @bind-Value="loginRequest.Password" />
+                <ValidationMessage For="@(() => loginRequest.Password)" />
 
-    <NavLink href="register">
-        <h6 class="font-weight-normal text-center">Create account</h6>
-    </NavLink>
-</EditForm>
+                <div class="form-check m-3">
+                    <InputCheckbox id="inputRememberMe" class="form-check-input" @bind-Value="@loginRequest.RememberMe" />
+                    <label class="form-check-label" for="inputRememberMe">Lembrar?</label>
+                </div>
+
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Entrar</button>
+
+                <p><label class="text-danger">@error</label></p>
+
+            </EditForm>
+        </div>
+    </div>
+</div>
 
 @code{
     LoginRequest loginRequest { get; set; } = new LoginRequest();

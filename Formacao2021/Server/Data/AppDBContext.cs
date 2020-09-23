@@ -1,4 +1,5 @@
-﻿using Formacao2021.Server.Models.Identity;
+﻿using Formacao2021.Server.Configuration;
+using Formacao2021.Server.Models.Identity;
 using Formacao2021.Shared.Models;
 using Formacao2021.Shared.Models.Tabelas;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,9 @@ namespace Formacao2021.Server.Data
         }
 
         #region set DbSet
+        //public DbSet<AppUser> AppUsers { get; set; }
+        //public DbSet<AppRole> AppRoles { get; set; }
+        //public DbSet<AppUserRole> AppUserRoles { get; set; }
         public DbSet<Uh> Uhs { get; set; }
         public DbSet<UserUh> UsersUhs { get; set; }
         public DbSet<Curso> Cursos { get; set; }
@@ -44,19 +48,28 @@ namespace Formacao2021.Server.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            _ = modelBuilder.Entity<IdentityUserToken<string>>()
+            modelBuilder.ApplyConfiguration(new UhConfiguration());
+            modelBuilder.ApplyConfiguration(new RoleConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new UserUhConfiguration());
+            modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
+
+            modelBuilder.Entity<UserUh>()
+                .HasKey(e => new { e.UserId, e.UhID });
+
+            modelBuilder.Entity<IdentityUserToken<string>>()
                 .HasKey(e => new { e.UserId });
-            _ = modelBuilder.Entity<IdentityUserLogin<string>>()
+            modelBuilder.Entity<IdentityUserLogin<string>>()
                 .HasKey(e => new { e.UserId });
-            _ = modelBuilder.Entity<AppUserRole>()
+            modelBuilder.Entity<AppUserRole>()
                 .HasKey(e => new { e.UserId, e.RoleId });
 
-            _ = modelBuilder.Entity<CursosFormando>()
+            modelBuilder.Entity<CursosFormando>()
                 .HasKey(e => new { e.FormandoID, e.CursoID });
-            _ = modelBuilder.Entity<RefrescamentosFormando>()
+            modelBuilder.Entity<RefrescamentosFormando>()
                 .HasKey(e => new { e.FormandoID, e.RefrescamentoID });
 
-            _ = modelBuilder.Entity<MarcacaoInicial>()
+            modelBuilder.Entity<MarcacaoInicial>()
                 .HasOne(u => u.Uh)
                 .WithMany(c => c.MarcacoesIniciais)
                 .OnDelete(DeleteBehavior.Restrict);

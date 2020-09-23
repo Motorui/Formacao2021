@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+
+@using Sotsera.Blazor.Toaster
+
 @inject NavigationManager navigationManager
 @inject AppStateProvider authStateProvider
 
@@ -8,10 +11,12 @@
 
 <div class="main">
     <div class="top-row">
-        <button type="button" class="btn btn-link ml-md-auto" @onclick="@LogoutClick">Logout</button>
+        <button type="button" class="btn btn-link ml-md-auto" @onclick="@LogoutClick">Sair</button>
     </div>
 
     <div class="content px-4">
+        <ToastContainer />
+
         @Body
     </div>
 </div>

@@ -1,5 +1,5 @@
 ﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">Formacao2021</a>
+    <a class="navbar-brand" href="">Formação 2021</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -9,10 +9,56 @@
     <ul class="nav flex-column">
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
+                <Icon Name="@("fas fa-home fa-2x fa-fw")" />&nbsp; Início
             </NavLink>
         </li>
-
+        <AuthorizeView>
+            <Authorized>
+                @if (@context.User.IsInRole("Admin"))
+                {
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="uhs">
+                            <Icon Name="@("fab fa-avianex fa-2x fa-fw")" />&nbsp; Unidades de Handling
+                        </NavLink>
+                    </li>
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="departamentosmanager">
+                            <Icon Name="@("fas fa-link fa-2x fa-fw")" />&nbsp; Departamentos
+                        </NavLink>
+                    </li>
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="users">
+                            <Icon Name="@("fas fa-users fa-2x fa-fw")" />&nbsp; Utilizadores
+                        </NavLink>
+                    </li>
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="gruposmanager">
+                            <Icon Name="@("fas fa-layer-group fa-2x fa-fw")" />&nbsp; Grupos
+                        </NavLink>
+                    </li>
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="empresasmanager">
+                            <Icon Name="@("fas fa-city fa-2x fa-fw")" />&nbsp; Empresas
+                        </NavLink>
+                    </li>
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="cursosmanager">
+                            <Icon Name="@("fas fa-book fa-2x fa-fw")" />&nbsp; Cursos
+                        </NavLink>
+                    </li>
+                }
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="formandosmanager">
+                        <Icon Name="@("fas fa-user-graduate fa-2x fa-fw")" />&nbsp; Formandos
+                    </NavLink>
+                </li>
+            </Authorized>
+            <NotAuthorized>
+                <li class="nav-item px-3">
+                    <span>Não está logado.</span>
+                </li>
+            </NotAuthorized>
+        </AuthorizeView>
     </ul>
 </div>
 
