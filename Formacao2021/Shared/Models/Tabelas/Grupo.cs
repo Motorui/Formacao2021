@@ -21,10 +21,6 @@ namespace Formacao2021.Shared.Models.Tabelas
             set => _nome = value?.ToUpper(CultureInfo.InvariantCulture);
         }
 
-        #region Relações
-        public virtual ICollection<Empresa> Empresas { get; set; }
-        #endregion
-
         #region BaseEntity
         [Display(Name = "Registo criado em:", ShortName = "Criado em:")]
         public DateTime? CreatedAt { get; set; }

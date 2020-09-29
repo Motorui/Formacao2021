@@ -1,0 +1,140 @@
+﻿@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@Modal" role="dialog" id="empresaModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Large">
+        <ModalHeader>
+            <ModalTitle>@CustomHeader</ModalTitle>
+            <CloseButton Clicked="@(() => CloseModal("empresaModal"))" />
+        </ModalHeader>
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
+            <ModalBody>
+                <DataAnnotationsValidator />
+                <input type="hidden" @bind-value="@Model.ID" />
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Nome</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <TextEdit @bind-Text="@Model.Nome">
+                            <FieldHelp>Inserir nome</FieldHelp>
+                        </TextEdit>
+                        <ValidationMessage For="@(() => Model.Nome)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Morada</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <TextEdit @bind-Text="@Model.Morada">
+                            <FieldHelp>Inserir a morada</FieldHelp>
+                        </TextEdit>
+                        <ValidationMessage For="@(() => Model.Morada)" />
+                    </FieldBody>
+                </Field>
+                <Fields>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Cod. Postal</FieldLabel>
+                        <TextEdit @bind-Text="@Model.CodPostal">
+                            <FieldHelp>Inserir o código postal</FieldHelp>
+                        </TextEdit>
+                        <ValidationMessage For="@(() => Model.CodPostal)" />
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Localidade</FieldLabel>
+                        <TextEdit @bind-Text="@Model.Localidade">
+                            <FieldHelp>Inserir a localidade</FieldHelp>
+                        </TextEdit>
+                        <ValidationMessage For="@(() => Model.Localidade)" />
+                    </Field>
+                </Fields>
+                <Fields>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Telefone</FieldLabel>
+                        <TextEdit @bind-Text="@Model.Telefone">
+                            <FieldHelp>Inserir o telefone</FieldHelp>
+                        </TextEdit>
+                        <ValidationMessage For="@(() => Model.Telefone)" />
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Email</FieldLabel>
+                        <TextEdit @bind-Text="@Model.Email" Role="TextRole.Email">
+                            <FieldHelp>Inserir o email</FieldHelp>
+                        </TextEdit>
+                        <ValidationMessage For="@(() => Model.Email)" />
+                    </Field>
+                </Fields>
+                <Fields>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Contato</FieldLabel>
+                        <TextEdit @bind-Text="@Model.Contato">
+                            <FieldHelp>Inserir a pessoa a contatar</FieldHelp>
+                        </TextEdit>
+                        <ValidationMessage For="@(() => Model.Contato)" />
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        @if (grupos != null)
+                        {
+                            <FieldLabel>Grupo</FieldLabel>
+                            <Select TValue="Guid?" @bind-SelectedValue="@Model.GrupoID">
+
+                                @foreach (var grupo in grupos)
+                                {
+                                    <SelectItem Value="@grupo.ID">@grupo.Nome</SelectItem>
+                                }
+                            </Select>
+                            <FieldHelp>Selecionar o grupo a que pertence</FieldHelp>
+                            <ValidationMessage For="@(() => Model.GrupoID)" />
+                        }
+                    </Field>
+                </Fields>
+            </ModalBody>
+            <ModalFooter>
+                <Tooltip Text="Gravar">
+                    <Button Color="Color.Success" Type="ButtonType.Submit">
+                        <Icon Name="IconName.Save" /> Submeter
+                    </Button>
+                </Tooltip>
+                <Tooltip Text="Fechar">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseModal("empresaModal"))">
+                        <Icon Name="IconName.StepBackward" /> Cancelar
+                    </Button>
+                </Tooltip>
+            </ModalFooter>
+        </EditForm>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal Modal;
+    [Parameter] public Action DataChanged { get; set; }
+    [Parameter] public RenderFragment CustomHeader { get; set; }
+    [Parameter] public Empresa Model { get; set; }
+    Grupo[] grupos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        grupos = await http.GetFromJsonAsync<Grupo[]>("api/grupo");
+    }
+
+    private async void HandleValidSubmit()
+    {
+        if (Model.ID == Guid.Empty)
+        {
+            await http.PostAsJsonAsync("api/empresa", Model);
+            Toaster.Success("Empresa adicionado com sucesso", "Sucesso!");
+        }
+        else
+        {
+            await http.PutAsJsonAsync("api/empresa", Model);
+            Toaster.Info("Empresa editada com sucesso", "Sucesso!");
+        }
+
+        await CloseModal("empresaModal");
+        DataChanged?.Invoke();
+    }
+
+    private async Task CloseModal(string modalId)
+    {
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}

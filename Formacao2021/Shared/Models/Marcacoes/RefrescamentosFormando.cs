@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Formacao2021.Shared.Models.Tabelas;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Formacao2021.Shared.Models.Tabelas
+namespace Formacao2021.Shared.Models.Marcacoes
 {
     [Table("RefrescamentosFormandos")]
     public class RefrescamentosFormando

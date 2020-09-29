@@ -1,0 +1,175 @@
+﻿@page "/uhs"
+
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient client
+@inject IJSRuntime js
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <Container Fluid="true">
+            <Row>
+                <Breadcrumb Mode="BreadcrumbMode.Auto">
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="">Início</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="#">Tabelas</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="uhs">Unidades de handling</BreadcrumbLink>
+                    </BreadcrumbItem>
+                </Breadcrumb>
+            </Row>
+            <Row>
+                <Column ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnMobile">
+                    <Card>
+                        <CardBody>
+                            <CardTitle Size="5">Unidades de Handling</CardTitle>
+                            <CardText>
+                                <SpinLoader IsLoading="@(uhs == null)">
+                                    <LoadingTemplate>
+                                        <div class="modal-overlay">
+                                            <Chase Color="#ff0000" Size="60px" Center="true" />
+                                        </div>
+                                    </LoadingTemplate>
+                                    <ContentTemplate>
+                                        @if (uhs.Length == 0)
+                                        {
+                                            <text>Não foram encontrados registos na base de dados</text>
+                                        }
+                                        else
+                                        {
+                                            <Table Striped="true" Bordered="true" Hoverable="true" FullWidth="false">
+                                                <TableHeader ThemeContrast="ThemeContrast.Light">
+                                                    <TableRow>
+                                                        <TableHeaderCell>Menu</TableHeaderCell>
+                                                        <TableHeaderCell>Nome</TableHeaderCell>
+                                                        <TableHeaderCell>IATA</TableHeaderCell>
+                                                        @if (@authContext.User.IsInRole("temp")) //substituir por Admins
+                                                        {
+                                                            <TableHeaderCell>Criado em:</TableHeaderCell>
+                                                            <TableHeaderCell>Criado por:</TableHeaderCell>
+                                                            <TableHeaderCell>Atualizado em:</TableHeaderCell>
+                                                            <TableHeaderCell>Atualizado por:</TableHeaderCell>
+                                                        }
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    @foreach (Uh uh in uhs)
+                                                    {
+                                                        <TableRow>
+                                                            <TableRowCell>
+                                                                <Tooltip Text="Editar UH">
+                                                                    <Button Color="Color.Info" Clicked="@(() => PrepareForEdit(uh))"
+                                                                            data-toggle="modal" data-target="#uhModal">
+                                                                        <Icon Name="IconName.Edit" />
+                                                                    </Button>
+                                                                </Tooltip>
+                                                                <Tooltip Text="Apagar UH">
+                                                                    <Button Color="Color.Danger" Clicked="@(() => PrepareForDelete(uh.UhID))"
+                                                                            data-toggle="modal" data-target="#confirmDeleteModal">
+                                                                        <Icon Name="IconName.Delete" />
+                                                                    </Button>
+                                                                </Tooltip>
+                                                            </TableRowCell>
+                                                            <TableRowCell>@uh.UhNome</TableRowCell>
+                                                            <TableRowCell>@uh.UhIATA</TableRowCell>
+                                                            @if (@authContext.User.IsInRole("temp")) //substituir por Admins
+                                                            {
+                                                                <TableRowCell>@uh.CreatedAt</TableRowCell>
+                                                                <TableRowCell>@uh.CreatedBy</TableRowCell>
+                                                                <TableRowCell>@uh.LastUpdatedAt</TableRowCell>
+                                                                <TableRowCell>@uh.LastUpdatedBy</TableRowCell>
+                                                            }
+                                                        </TableRow>
+                                                    }
+                                                </TableBody>
+                                            </Table>
+                                        }
+                                    </ContentTemplate>
+                                    <FaultedContentTemplate>
+
+                                        <text>ERRO!</text>
+
+                                    </FaultedContentTemplate>
+                                </SpinLoader>
+                            </CardText>
+                            <CardFooter>
+                                <Tooltip Text="Criar nova Unidade de Handling">
+                                    <Button Color="Color.Success" Clicked="@(() => PrepareToAdd())"
+                                            data-toggle="modal" data-target="#uhModal">
+                                        Criar <Icon Name="IconName.Add" />
+                                    </Button>
+                                </Tooltip>
+                            </CardFooter>
+                        </CardBody>
+                    </Card>
+                </Column>
+            </Row>
+        </Container>
+
+        <ConfirmDialog OnClick="@Delete">
+            <ConfirmText>
+                <p>Deseja de apagar @itemToDelete ?</p>
+                <p>Não será possível recuperar este registo!</p>
+            </ConfirmText>    
+        </ConfirmDialog>
+        <UhModal Model=Model DataChanged="@DataChanged">
+            <CustomHeader>@customHeader</CustomHeader>
+        </UhModal>
+
+    </Authorized>
+    <NotAuthorized>
+        <p>Não está logado.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    Uh[] uhs { get; set; }
+    Uh Model = new Uh();
+    Guid UhToDelete { get; set; }
+    string itemToDelete = string.Empty;
+    string customHeader = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        uhs = await client.GetFromJsonAsync<Uh[]>("api/uh");
+    }
+
+    private async void DataChanged()
+    {
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+
+    private void PrepareToAdd()
+    {
+        Model = new Uh();
+        customHeader = "Adicionar UH";
+    }
+
+    private void PrepareForEdit(Uh uh)
+    {
+        customHeader = "Editar UH";
+        Model = uh;
+    }
+
+    private void PrepareForDelete(Guid uhId)
+    {
+        UhToDelete = uhId;
+        var uh = uhs.First(x => x.UhID == UhToDelete);
+        itemToDelete = uh.UhNome;
+    }
+
+    async Task Delete()
+    {
+        await client.DeleteAsync($"api/uh/{UhToDelete}");
+
+        await js.InvokeAsync<object>("global.closeModal", "confirmDeleteModal");
+
+        await Task.Delay(100);
+        Toaster.Error("UH apagada com sucesso", "Sucesso!");
+
+        await OnInitializedAsync();
+    }
+}

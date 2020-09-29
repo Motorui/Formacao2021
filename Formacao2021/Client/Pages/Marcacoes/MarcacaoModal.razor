@@ -1,0 +1,145 @@
+﻿@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@Modal" role="dialog" id="marcacaoModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle>@CustomHeader</ModalTitle>
+            <CloseButton Clicked="@(() => CloseModal("marcacaoModal"))" />
+        </ModalHeader>
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
+            <ModalBody>
+                <DataAnnotationsValidator />
+                <input type="hidden" @bind-value="@Model.ID" />
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Início</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <DateEdit TValue="DateTime" @bind-Date="@Model.DataInicio">
+                            <FieldHelp>Inserir data de início</FieldHelp>
+                        </DateEdit>
+                        <ValidationMessage For="@(() => Model.DataInicio)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Fim</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <DateEdit TValue="DateTime" @bind-Date="@Model.DataFim">
+                            <FieldHelp>Inserir data de fim</FieldHelp>
+                        </DateEdit>
+                        <ValidationMessage For="@(() => Model.DataFim)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Curso</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        @if (cursos != null)
+                        {
+                            <Select TValue="Guid" @bind-SelectedValue="@Model.CursoID">
+                                <SelectItem Value="@Guid.Empty">Selecionar</SelectItem>
+                                @foreach (var cur in cursos)
+                                {
+                                    <SelectItem Value="@cur.ID">@cur.Nome</SelectItem>
+                                }
+                                <FieldHelp>por favor selecionar o curso</FieldHelp>
+                            </Select>
+                        }
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Capacidade</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <NumericEdit TValue="int" @bind-Value="@Model.Capacidade">
+                            <FieldHelp>Capacidade da formação</FieldHelp>
+                        </NumericEdit>
+                        <ValidationMessage For="@(() => Model.Capacidade)" />
+                    </FieldBody>
+                </Field>
+                <Fields>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Uh</FieldLabel>
+                        @if (uhs != null)
+                        {
+                            <Select TValue="Guid" @bind-SelectedValue="@Model.UhID">
+
+                                @foreach (var uh in uhs)
+                                {
+                                    <SelectItem Value="@uh.UhID">@uh.UhIATA</SelectItem>
+                                }
+                            </Select>
+                            <FieldHelp>Selecionar a unidade de handling</FieldHelp>
+                        }
+                        <ValidationMessage For="@(() => Model.UhID)" />
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Sala</FieldLabel>
+                        @if (salas != null)
+                        {
+                            <Select TValue="Guid" @bind-SelectedValue="@Model.SalaID">
+
+                                @foreach (var sala in salas)
+                                {
+                                    <SelectItem Value="@sala.ID">@sala.Nome</SelectItem>
+                                }
+                            </Select>
+                            <FieldHelp>Selecionar a sala onde se vai realizar</FieldHelp>
+                        }
+                        <ValidationMessage For="@(() => Model.SalaID)" />
+                    </Field>
+                </Fields>
+            </ModalBody>
+            <ModalFooter>
+                <Tooltip Text="Gravar">
+                    <Button Color="Color.Success" Type="ButtonType.Submit">
+                        <Icon Name="IconName.Save" /> Submeter
+                    </Button>
+                </Tooltip>
+                <Tooltip Text="Fechar">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseModal("marcacaoModal"))">
+                        <Icon Name="IconName.StepBackward" /> Cancelar
+                    </Button>
+                </Tooltip>
+            </ModalFooter>
+        </EditForm>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal Modal;
+    [Parameter] public Action DataChanged { get; set; }
+    [Parameter] public RenderFragment CustomHeader { get; set; }
+    [Parameter] public MarcacaoInicial Model { get; set; }
+    Uh[] uhs;
+    Sala[] salas;
+    Curso[] cursos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        uhs = await http.GetFromJsonAsync<Uh[]>("api/uh");
+        salas = await http.GetFromJsonAsync<Sala[]>("api/sala");
+        cursos = await http.GetFromJsonAsync<Curso[]>("api/curso");
+    }
+
+    private async void HandleValidSubmit()
+    {
+        if (Model.ID == Guid.Empty)
+        {
+            await http.PostAsJsonAsync("api/marcacao", Model);
+            Toaster.Success("Marcação criada com sucesso", "Sucesso!");
+        }
+        else
+        {
+            await http.PutAsJsonAsync("api/marcacao", Model);
+            Toaster.Info("Marcação editada com sucesso", "Sucesso!");
+        }
+
+        await CloseModal("marcacaoModal");
+        DataChanged?.Invoke();
+    }
+
+    private async Task CloseModal(string modalId)
+    {
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}

@@ -1,0 +1,67 @@
+﻿@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@Modal" role="dialog" id="grupoModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle>@CustomHeader</ModalTitle>
+            <CloseButton Clicked="@(() => CloseModal("grupoModal"))" />
+        </ModalHeader>
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
+            <ModalBody>
+                <DataAnnotationsValidator />
+                <input type="hidden" @bind-value="@Model.ID" />
+                <Field>
+                    <FieldLabel>Nome</FieldLabel>
+                    <TextEdit @bind-Text="@Model.Nome" MaxLength="25">
+                        <FieldHelp>Inserir nome do Grupo</FieldHelp>
+                    </TextEdit>
+                    <ValidationMessage For="@(() => Model.Nome)" />
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Tooltip Text="Gravar">
+                    <Button Color="Color.Success" Type="ButtonType.Submit">
+                        <Icon Name="IconName.Save" /> Submeter
+                    </Button>
+                </Tooltip>
+                <Tooltip Text="Fechar">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseModal("grupoModal"))">
+                        <Icon Name="IconName.StepBackward" /> Cancelar
+                    </Button>
+                </Tooltip>
+            </ModalFooter>
+        </EditForm>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal Modal;
+    [Parameter] public Action DataChanged { get; set; }
+    [Parameter] public RenderFragment CustomHeader { get; set; }
+    [Parameter] public Grupo Model { get; set; }
+
+    private async void HandleValidSubmit()
+    {
+        if (Model.ID == Guid.Empty)
+        {
+            await http.PostAsJsonAsync("api/grupo", Model);
+            Toaster.Success("Grupo adicionado com sucesso", "Sucesso!");
+        }
+        else
+        {
+            await http.PutAsJsonAsync("api/grupo", Model);
+            Toaster.Info("Grupo editado com sucesso", "Sucesso!");
+        }
+
+        await CloseModal("grupoModal");
+        DataChanged?.Invoke();
+    }
+
+    private async Task CloseModal(string modalId)
+    {
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}

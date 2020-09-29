@@ -2,30 +2,30 @@
 @inject HttpClient http
 @inject IJSRuntime js
 
-<Modal @ref="@UhsModal" role="dialog" id="uhModal">
+<Modal @ref="@Modal" role="dialog" id="uhModal">
     <ModalBackdrop />
     <ModalContent Centered="true" Size="ModalSize.Default">
         <ModalHeader>
             <ModalTitle>@CustomHeader</ModalTitle>
-            <CloseButton Clicked="@(() => CloseUhModal("uhModal"))" />
+            <CloseButton Clicked="@(() => CloseModal("uhModal"))" />
         </ModalHeader>
-        <EditForm Model="@ModelUh" OnValidSubmit="@HandleValidSubmit">
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
             <ModalBody>
                 <DataAnnotationsValidator />
-                <input type="hidden" @bind-value="@ModelUh.UhID" />
+                <input type="hidden" @bind-value="@Model.UhID" />
                 <Field>
                     <FieldLabel>Nome</FieldLabel>
-                    <TextEdit @bind-Text="@ModelUh.UhNome" MaxLength="25">
+                    <TextEdit @bind-Text="@Model.UhNome" MaxLength="25">
                         <FieldHelp>Inserir nome da unidade de handling</FieldHelp>
                     </TextEdit>
-                    <ValidationMessage For="@(() => ModelUh.UhNome)" />
+                    <ValidationMessage For="@(() => Model.UhNome)" />
                 </Field>
                 <Field>
                     <FieldLabel>IATA</FieldLabel>
-                    <TextEdit @bind-Text="@ModelUh.UhIATA" MaxLength="3">
+                    <TextEdit @bind-Text="@Model.UhIATA" MaxLength="3">
                         <FieldHelp>Inserir o código IATA</FieldHelp>
                     </TextEdit>
-                    <ValidationMessage For="@(() => ModelUh.UhIATA)" />
+                    <ValidationMessage For="@(() => Model.UhIATA)" />
                 </Field>
             </ModalBody>
             <ModalFooter>
@@ -35,7 +35,7 @@
                     </Button>
                 </Tooltip>
                 <Tooltip Text="Fechar">
-                    <Button Color="Color.Warning" Clicked="@(() => CloseUhModal("uhModal"))">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseModal("uhModal"))">
                         <Icon Name="IconName.StepBackward" /> Cancelar
                     </Button>
                 </Tooltip>
@@ -45,29 +45,29 @@
 </Modal>
 
 @code{
-    private Modal UhsModal;
+    private Modal Modal;
     [Parameter] public Action DataChanged { get; set; }
     [Parameter] public RenderFragment CustomHeader { get; set; }
-    [Parameter] public Uh ModelUh { get; set; }
+    [Parameter] public Uh Model { get; set; }
 
     private async void HandleValidSubmit()
     {
-        if (ModelUh.UhID == Guid.Empty)
+        if (Model.UhID == Guid.Empty)
         {
-            await http.PostAsJsonAsync("api/Uh", ModelUh);
+            await http.PostAsJsonAsync("api/uh", Model);
             Toaster.Success("UH adicionada com sucesso", "Sucesso!");
         }
         else
         {
-            await http.PutAsJsonAsync("api/Uh", ModelUh);
+            await http.PutAsJsonAsync("api/uh", Model);
             Toaster.Info("UH editada com sucesso", "Sucesso!");
         }
 
-        await CloseUhModal("uhModal");
+        await CloseModal("uhModal");
         DataChanged?.Invoke();
     }
 
-    private async Task CloseUhModal(string modalId)
+    private async Task CloseModal(string modalId)
     {
         await js.InvokeAsync<object>("global.closeModal", modalId);
     }

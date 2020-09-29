@@ -446,7 +446,7 @@ namespace Formacao2021.Server.Migrations
                     ID = table.Column<Guid>(nullable: false),
                     DataInicio = table.Column<DateTime>(nullable: false),
                     DataFim = table.Column<DateTime>(nullable: false),
-                    Capaciade = table.Column<int>(nullable: false),
+                    Capacidade = table.Column<int>(nullable: false),
                     SalaID = table.Column<Guid>(nullable: false),
                     CursoID = table.Column<Guid>(nullable: false),
                     UhID = table.Column<Guid>(nullable: false),

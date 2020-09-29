@@ -1,4 +1,4 @@
-﻿@page "/uhs"
+﻿@page "/grupos"
 
 @inject Sotsera.Blazor.Toaster.IToaster Toaster
 @inject HttpClient client
@@ -13,7 +13,10 @@
                         <BreadcrumbLink To="">Início</BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbItem>
-                        <BreadcrumbLink To="uhs">Unidades de handling</BreadcrumbLink>
+                        <BreadcrumbLink To="#">Tabelas</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="grupos">Grupos</BreadcrumbLink>
                     </BreadcrumbItem>
                 </Breadcrumb>
             </Row>
@@ -21,16 +24,16 @@
                 <Column ColumnSize="ColumnSize.Is6.OnDesktop.Is12.OnMobile">
                     <Card>
                         <CardBody>
-                            <CardTitle Size="5">Unidades de Handling</CardTitle>
+                            <CardTitle Size="5">Grupos</CardTitle>
                             <CardText>
-                                <SpinLoader IsLoading="@(uhs == null)">
+                                <SpinLoader IsLoading="@(grupos == null)">
                                     <LoadingTemplate>
                                         <div class="modal-overlay">
                                             <Chase Color="#ff0000" Size="60px" Center="true" />
                                         </div>
                                     </LoadingTemplate>
                                     <ContentTemplate>
-                                        @if (uhs.Length == 0)
+                                        @if (grupos.Length == 0)
                                         {
                                             <text>Não foram encontrados registos na base de dados</text>
                                         }
@@ -41,8 +44,7 @@
                                                     <TableRow>
                                                         <TableHeaderCell>Menu</TableHeaderCell>
                                                         <TableHeaderCell>Nome</TableHeaderCell>
-                                                        <TableHeaderCell>IATA</TableHeaderCell>
-                                                        @if (@authContext.User.IsInRole("temp")) //substituir por Admins
+                                                        @if (@authContext.User.IsInRole("temp")) //substituir por Admin
                                                         {
                                                             <TableHeaderCell>Criado em:</TableHeaderCell>
                                                             <TableHeaderCell>Criado por:</TableHeaderCell>
@@ -52,31 +54,30 @@
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    @foreach (Uh uh in uhs)
+                                                    @foreach (Grupo grupo in grupos)
                                                     {
                                                         <TableRow>
                                                             <TableRowCell>
-                                                                <Tooltip Text="Editar UH">
-                                                                    <Button Color="Color.Info" Clicked="@(() => PrepareForEdit(uh))"
-                                                                            data-toggle="modal" data-target="#uhModal">
+                                                                <Tooltip Text="Editar Grupo">
+                                                                    <Button Color="Color.Info" Clicked="@(() => PrepareForEdit(grupo))"
+                                                                            data-toggle="modal" data-target="#grupoModal">
                                                                         <Icon Name="IconName.Edit" />
                                                                     </Button>
                                                                 </Tooltip>
-                                                                <Tooltip Text="Apagar UH">
-                                                                    <Button Color="Color.Danger" Clicked="@(() => PrepareForDelete(uh.UhID))"
+                                                                <Tooltip Text="Apagar Grupo">
+                                                                    <Button Color="Color.Danger" Clicked="@(() => PrepareForDelete(grupo.ID))"
                                                                             data-toggle="modal" data-target="#confirmDeleteModal">
                                                                         <Icon Name="IconName.Delete" />
                                                                     </Button>
                                                                 </Tooltip>
                                                             </TableRowCell>
-                                                            <TableRowCell>@uh.UhNome</TableRowCell>
-                                                            <TableRowCell>@uh.UhIATA</TableRowCell>
+                                                            <TableRowCell>@grupo.Nome</TableRowCell>
                                                             @if (@authContext.User.IsInRole("temp")) //substituir por Admins
                                                             {
-                                                                <TableRowCell>@uh.CreatedAt</TableRowCell>
-                                                                <TableRowCell>@uh.CreatedBy</TableRowCell>
-                                                                <TableRowCell>@uh.LastUpdatedAt</TableRowCell>
-                                                                <TableRowCell>@uh.LastUpdatedBy</TableRowCell>
+                                                                <TableRowCell>@grupo.CreatedAt</TableRowCell>
+                                                                <TableRowCell>@grupo.CreatedBy</TableRowCell>
+                                                                <TableRowCell>@grupo.LastUpdatedAt</TableRowCell>
+                                                                <TableRowCell>@grupo.LastUpdatedBy</TableRowCell>
                                                             }
                                                         </TableRow>
                                                     }
@@ -92,9 +93,9 @@
                                 </SpinLoader>
                             </CardText>
                             <CardFooter>
-                                <Tooltip Text="Criar nova Unidade de Handling">
+                                <Tooltip Text="Criar novo Grupo">
                                     <Button Color="Color.Success" Clicked="@(() => PrepareToAdd())"
-                                            data-toggle="modal" data-target="#uhModal">
+                                            data-toggle="modal" data-target="#grupoModal">
                                         Criar <Icon Name="IconName.Add" />
                                     </Button>
                                 </Tooltip>
@@ -109,11 +110,11 @@
             <ConfirmText>
                 <p>Deseja de apagar @itemToDelete ?</p>
                 <p>Não será possível recuperar este registo!</p>
-            </ConfirmText>    
+            </ConfirmText>
         </ConfirmDialog>
-        <UhModal ModelUh=SelectedUH DataChanged="@DataChanged">
+        <GrupoModal Model=Model DataChanged="@DataChanged">
             <CustomHeader>@customHeader</CustomHeader>
-        </UhModal>
+        </GrupoModal>
 
     </Authorized>
     <NotAuthorized>
@@ -122,15 +123,15 @@
 </AuthorizeView>
 
 @code {
-    Uh[] uhs { get; set; }
-    Uh SelectedUH = new Uh();
-    Guid UhToDelete { get; set; }
+    Grupo[] grupos { get; set; }
+    Grupo Model = new Grupo();
+    Guid GrupoToDelete { get; set; }
     string itemToDelete = string.Empty;
     string customHeader = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        uhs = await client.GetFromJsonAsync<Uh[]>("api/Uh");
+        grupos = await client.GetFromJsonAsync<Grupo[]>("api/grupo");
     }
 
     private async void DataChanged()
@@ -141,31 +142,31 @@
 
     private void PrepareToAdd()
     {
-        SelectedUH = new Uh();
-        customHeader = "Adicionar UH";
+        Model = new Grupo();
+        customHeader = "Adicionar Grupo";
     }
 
-    private void PrepareForEdit(Uh uh)
+    private void PrepareForEdit(Grupo Grupo)
     {
-        customHeader = "Editar UH";
-        SelectedUH = uh;
+        customHeader = "Editar Grupo";
+        Model = Grupo;
     }
 
-    private void PrepareForDelete(Guid uhId)
+    private void PrepareForDelete(Guid Id)
     {
-        UhToDelete = uhId;
-        var uh = uhs.First(x => x.UhID == UhToDelete);
-        itemToDelete = uh.UhNome;
+        GrupoToDelete = Id;
+        var grupo = grupos.First(x => x.ID == GrupoToDelete);
+        itemToDelete = grupo.Nome;
     }
 
     async Task Delete()
     {
-        await client.DeleteAsync($"api/Uh/{UhToDelete}");
+        await client.DeleteAsync($"api/grupo/{GrupoToDelete}");
 
         await js.InvokeAsync<object>("global.closeModal", "confirmDeleteModal");
 
         await Task.Delay(100);
-        Toaster.Error("UH apagada com sucesso", "Sucesso!");
+        Toaster.Error("Grupo apagado com sucesso", "Sucesso!");
 
         await OnInitializedAsync();
     }

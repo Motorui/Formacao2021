@@ -1,0 +1,74 @@
+﻿@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@Modal" role="dialog" id="departamentoModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle>@CustomHeader</ModalTitle>
+            <CloseButton Clicked="@(() => CloseModal("departamentoModal"))" />
+        </ModalHeader>
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
+            <ModalBody>
+                <DataAnnotationsValidator />
+                <input type="hidden" @bind-value="@Model.ID" />
+                <Field>
+                    <FieldLabel>Número</FieldLabel>
+                    <NumericEdit @bind-Value="@Model.Numero" TValue="int">
+                        <FieldHelp>Inserir o número do Departamento</FieldHelp>
+                    </NumericEdit>
+                    <ValidationMessage For="@(() => Model.Numero)" />
+                </Field>
+                <Field>
+                    <FieldLabel>Nome</FieldLabel>
+                    <TextEdit @bind-Text="@Model.Nome" MaxLength="25">
+                        <FieldHelp>Inserir nome do Departamento</FieldHelp>
+                    </TextEdit>
+                    <ValidationMessage For="@(() => Model.Nome)" />
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Tooltip Text="Gravar">
+                    <Button Color="Color.Success" Type="ButtonType.Submit">
+                        <Icon Name="IconName.Save" /> Submeter
+                    </Button>
+                </Tooltip>
+                <Tooltip Text="Fechar">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseModal("departamentoModal"))">
+                        <Icon Name="IconName.StepBackward" /> Cancelar
+                    </Button>
+                </Tooltip>
+            </ModalFooter>
+        </EditForm>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal Modal;
+    [Parameter] public Action DataChanged { get; set; }
+    [Parameter] public RenderFragment CustomHeader { get; set; }
+    [Parameter] public Departamento Model { get; set; }
+
+    private async void HandleValidSubmit()
+    {
+        if (Model.ID == Guid.Empty)
+        {
+            await http.PostAsJsonAsync("api/departamento", Model);
+            Toaster.Success("Departamento adicionado com sucesso", "Sucesso!");
+        }
+        else
+        {
+            await http.PutAsJsonAsync("api/departamento", Model);
+            Toaster.Info("Departamento editado com sucesso", "Sucesso!");
+        }
+
+        await CloseModal("departamentoModal");
+        DataChanged?.Invoke();
+    }
+
+    private async Task CloseModal(string modalId)
+    {
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}

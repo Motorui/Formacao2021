@@ -1,0 +1,192 @@
+﻿@page "/cursos"
+
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient client
+@inject IJSRuntime js
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <Container Fluid="true">
+            <Row>
+                <Breadcrumb Mode="BreadcrumbMode.Auto">
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="">Início</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="#">Tabelas</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="cursos">Cursos</BreadcrumbLink>
+                    </BreadcrumbItem>
+                </Breadcrumb>
+            </Row>
+            <Row>
+                <Column ColumnSize="ColumnSize.Is8.OnDesktop.Is12.OnMobile">
+                    <Card>
+                        <CardBody>
+                            <CardTitle Size="5">Cursos</CardTitle>
+                            <CardText>
+                                <SpinLoader IsLoading="@(cursos == null)">
+                                    <LoadingTemplate>
+                                        <div class="modal-overlay">
+                                            <Chase Color="#ff0000" Size="60px" Center="true" />
+                                        </div>
+                                    </LoadingTemplate>
+                                    <ContentTemplate>
+                                        @if (cursos.Length == 0)
+                                        {
+                                            <p>
+                                                <text>Não foram encontrados registos na base de dados</text>
+                                            </p>
+                                            <div>
+                                                <Tooltip Text="Criar novo Curso">
+                                                    <Button Color="Color.Success" Clicked="@(() => PrepareToAdd())"
+                                                            data-toggle="modal" data-target="#cursoModal">
+                                                        Criar <Icon Name="IconName.Add" />
+                                                    </Button>
+                                                </Tooltip>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <DataGrid TItem="Curso"
+                                                      Data="@cursos"
+                                                      @bind-SelectedRow="@Model"
+                                                      Filterable="true"
+                                                      Sortable="true"
+                                                      Editable="true"
+                                                      UseInternalEditing="false"
+                                                      SelectedRowStyling="@OnSelectedRowStyling"
+                                                      ShowPager="true"
+                                                      PageSize="25"
+                                                      Striped="true"
+                                                      Bordered="true"
+                                                      Hoverable="true">
+                                                <DataGridCommandColumn TItem="Curso">
+                                                    <NewCommandTemplate>
+                                                        <Tooltip Text="Criar novo Curso">
+                                                            <Button Color="Color.Success" Clicked="@(() => PrepareToAdd())"
+                                                                    data-toggle="modal" data-target="#cursoModal">
+                                                                Criar <Icon Name="IconName.Add" />
+                                                            </Button>
+                                                        </Tooltip>
+                                                    </NewCommandTemplate>
+                                                    <EditCommandTemplate>
+                                                        <Tooltip Text="Editar Curso">
+                                                            <Button Color="Color.Info" Clicked="@(() => PrepareForEdit(Model))"
+                                                                    data-toggle="modal" data-target="#cursoModal">
+                                                                <Icon Name="IconName.Edit" />
+                                                            </Button>
+                                                        </Tooltip>
+                                                    </EditCommandTemplate>
+                                                    <DeleteCommandTemplate>
+                                                        <Tooltip Text="Apagar Curso">
+                                                            <Button Color="Color.Danger" Clicked="@(() => PrepareForDelete(Model.ID))"
+                                                                    data-toggle="modal" data-target="#confirmDeleteModal">
+                                                                <Icon Name="IconName.Delete" />
+                                                            </Button>
+                                                        </Tooltip>
+                                                    </DeleteCommandTemplate>
+                                                    <ClearFilterCommandTemplate>
+                                                        <Button Color="Color.Light" Clicked="@context.Clicked">
+                                                            <Icon Name="IconName.Clear" />
+                                                        </Button>
+                                                    </ClearFilterCommandTemplate>
+                                                </DataGridCommandColumn>
+                                                <DataGridColumn TItem="Curso" Field="@nameof(Curso.ID)" Caption="#" Sortable="false" Displayable="false" />
+                                                <DataGridColumn TItem="Curso" Field="@nameof(Curso.Nome)" Caption="Nome" Editable="true" />
+                                                <DataGridColumn TItem="Curso" Field="@nameof(Curso.Codigo)" Caption="Código" Editable="true" />
+                                                <DataGridNumericColumn TItem="Curso" Field="@nameof(Curso.Duracao)" Caption="Duração (horas)" Editable="true" TextAlignment="TextAlignment.Center" />
+                                                <DataGridNumericColumn TItem="Curso" Field="@nameof(Curso.Validade)" Caption="Validade (anos)" Editable="true" TextAlignment="TextAlignment.Center" />
+                                                <DataGridColumn TItem="Curso" Field="@nameof(Curso.Cor)" Caption="Côr" Editable="true" Filterable="false" Sortable="false" Width="100px">
+                                                    <DisplayTemplate>
+                                                        @{
+                                                            var c = (context as Curso)?.Cor;
+                                                            <div class="boxColor" style="background: @c"></div>
+                                                        }
+                                                    </DisplayTemplate>
+                                                </DataGridColumn>
+                                            </DataGrid>
+                                        }
+                                    </ContentTemplate>
+                                    <FaultedContentTemplate>
+                                        <text>ERRO!</text>
+                                    </FaultedContentTemplate>
+                                </SpinLoader>
+                            </CardText>
+                        </CardBody>
+                    </Card>
+                </Column>
+            </Row>
+        </Container>
+
+        <ConfirmDialog OnClick="@Delete">
+            <ConfirmText>
+                <p>Deseja de apagar @itemToDelete ?</p>
+                <p>Não será possível recuperar este registo!</p>
+            </ConfirmText>
+        </ConfirmDialog>
+        <CursoModal Model=Model DataChanged="@DataChanged">
+            <CustomHeader>@customHeader</CustomHeader>
+        </CursoModal>
+
+    </Authorized>
+    <NotAuthorized>
+        <p>Não está logado.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    Curso[] cursos;
+    Curso Model = new Curso();
+    Guid CursoToDelete { get; set; }
+    string itemToDelete = string.Empty;
+    string customHeader = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cursos = await client.GetFromJsonAsync<Curso[]>("api/curso");
+    }
+
+    private async void DataChanged()
+    {
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+
+    private void PrepareToAdd()
+    {
+        Model = new Curso();
+        customHeader = "Adicionar Curso";
+    }
+
+    private void PrepareForEdit(Curso curso)
+    {
+        customHeader = "Editar Curso";
+        Model = curso;
+    }
+
+    private void PrepareForDelete(Guid cursoId)
+    {
+        CursoToDelete = cursoId;
+        var curso = cursos.First(x => x.ID == CursoToDelete);
+        itemToDelete = curso.Nome;
+    }
+
+    async Task Delete()
+    {
+        await client.DeleteAsync($"api/curso/{CursoToDelete}");
+
+        await js.InvokeAsync<object>("global.closeModal", "confirmDeleteModal");
+
+        await Task.Delay(100);
+        Toaster.Error("Curso apagado com sucesso", "Sucesso!");
+
+        await OnInitializedAsync();
+    }
+
+    void OnSelectedRowStyling(Curso curso, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Light;
+    }
+}

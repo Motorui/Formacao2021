@@ -45,10 +45,6 @@ namespace Formacao2021.Shared.Models.Tabelas
         public Guid? GrupoID { get; set; }
         public Grupo Grupo { get; set; }
 
-        #region Relações
-        public virtual ICollection<Formando> Formandos { get; set; }
-        #endregion
-
         #region BaseEntity
         [Display(Name = "Registo criado em:", ShortName = "Criado em:")]
         public DateTime? CreatedAt { get; set; }

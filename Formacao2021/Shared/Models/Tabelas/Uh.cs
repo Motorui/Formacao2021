@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Formacao2021.Shared.Models.Marcacoes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;

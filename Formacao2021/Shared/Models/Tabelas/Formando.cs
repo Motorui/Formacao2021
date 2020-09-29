@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
@@ -31,11 +30,6 @@ namespace Formacao2021.Shared.Models.Tabelas
         [Display(Name = "Departamento")]
         public Guid? DepartamentoID { get; set; }
         public Departamento Departamento { get; set; }
-
-        public virtual ICollection<FormandoDetalhe> FormandosDetalhes { get; set; }
-        public virtual ICollection<CursosFormando> CursosFormandos { get; set; }
-        public virtual ICollection<RefrescamentosFormando> RefrescamentosFormandos { get; set; }
-
         #endregion
 
         #region BaseEntity

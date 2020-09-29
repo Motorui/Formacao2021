@@ -1,6 +1,7 @@
 ﻿using Formacao2021.Server.Configuration;
 using Formacao2021.Server.Models.Identity;
 using Formacao2021.Shared.Models;
+using Formacao2021.Shared.Models.Marcacoes;
 using Formacao2021.Shared.Models.Tabelas;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -27,9 +28,6 @@ namespace Formacao2021.Server.Data
         }
 
         #region set DbSet
-        //public DbSet<AppUser> AppUsers { get; set; }
-        //public DbSet<AppRole> AppRoles { get; set; }
-        //public DbSet<AppUserRole> AppUserRoles { get; set; }
         public DbSet<Uh> Uhs { get; set; }
         public DbSet<UserUh> UsersUhs { get; set; }
         public DbSet<Curso> Cursos { get; set; }
@@ -53,6 +51,7 @@ namespace Formacao2021.Server.Data
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new UserUhConfiguration());
             modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
+            modelBuilder.ApplyConfiguration(new GrupoConfiguration());
 
             modelBuilder.Entity<UserUh>()
                 .HasKey(e => new { e.UserId, e.UhID });
@@ -73,7 +72,6 @@ namespace Formacao2021.Server.Data
                 .HasOne(u => u.Uh)
                 .WithMany(c => c.MarcacoesIniciais)
                 .OnDelete(DeleteBehavior.Restrict);
-
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)

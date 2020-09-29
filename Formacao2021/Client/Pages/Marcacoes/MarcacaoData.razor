@@ -1,0 +1,202 @@
+﻿@page "/marcacoes"
+
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient client
+@inject IJSRuntime js
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <Container Fluid="true">
+            <Row>
+                <Breadcrumb Mode="BreadcrumbMode.Auto">
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="">Início</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="#">Tabelas</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink To="marcacoes">Marcações</BreadcrumbLink>
+                    </BreadcrumbItem>
+                </Breadcrumb>
+            </Row>
+            <Row>
+                <Column ColumnSize="ColumnSize.Is8.OnDesktop.Is12.OnMobile">
+                    <Card>
+                        <CardBody>
+                            <CardTitle Size="5">Marcações</CardTitle>
+                            <CardText>
+                                <SpinLoader IsLoading="@(marcacoes == null)">
+                                    <LoadingTemplate>
+                                        <div class="modal-overlay">
+                                            <Chase Color="#ff0000" Size="60px" Center="true" />
+                                        </div>
+                                    </LoadingTemplate>
+                                    <ContentTemplate>
+                                        @if (marcacoes.Length == 0)
+                                        {
+                                            <p>
+                                                <text>Não foram encontrados registos na base de dados</text>
+                                            </p>
+                                            <div>
+                                                <Tooltip Text="Adicionar Marcação">
+                                                    <Button Color="Color.Success" Clicked="@(() => PrepareToAdd())"
+                                                            data-toggle="modal" data-target="#marcacaoModal">
+                                                        Criar <Icon Name="IconName.Add" />
+                                                    </Button>
+                                                </Tooltip>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                    <DataGrid TItem="MarcacaoInicial"
+                                              Data="@marcacoes"
+                                              @bind-SelectedRow="@Model"
+                                              Filterable="true"
+                                              Sortable="true"
+                                              Editable="true"
+                                              UseInternalEditing="false"
+                                              SelectedRowStyling="@OnSelectedRowStyling"
+                                              ShowPager="true"
+                                              PageSize="25"
+                                              Striped="true"
+                                              Bordered="true"
+                                              Hoverable="true">
+                                        <DataGridCommandColumn TItem="MarcacaoInicial">
+                                            <NewCommandTemplate>
+                                                <Tooltip Text="Criar Marcação">
+                                                    <Button Color="Color.Success" Clicked="@(() => PrepareToAdd())"
+                                                            data-toggle="modal" data-target="#marcacaoModal">
+                                                        Criar <Icon Name="IconName.Add" />
+                                                    </Button>
+                                                </Tooltip>
+                                            </NewCommandTemplate>
+                                            <EditCommandTemplate>
+                                                <Tooltip Text="Editar Marcação">
+                                                    <Button Color="Color.Info" Clicked="@(() => PrepareForEdit(Model))"
+                                                            data-toggle="modal" data-target="#marcacaoModal">
+                                                        <Icon Name="IconName.Edit" />
+                                                    </Button>
+                                                </Tooltip>
+                                            </EditCommandTemplate>
+                                            <DeleteCommandTemplate>
+                                                <Tooltip Text="Apagar Marcação">
+                                                    <Button Color="Color.Danger" Clicked="@(() => PrepareForDelete(Model))"
+                                                            data-toggle="modal" data-target="#confirmDeleteModal">
+                                                        <Icon Name="IconName.Delete" />
+                                                    </Button>
+                                                </Tooltip>
+                                            </DeleteCommandTemplate>
+                                            <ClearFilterCommandTemplate>
+                                                <Button Color="Color.Light" Clicked="@context.Clicked">
+                                                    <Icon Name="IconName.Clear" />
+                                                </Button>
+                                            </ClearFilterCommandTemplate>
+                                        </DataGridCommandColumn>
+                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.ID)" Caption="#" Sortable="false" Displayable="false" />
+                                        <DataGridDateColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.DataInicio)" Caption="Início" Editable="true" />
+                                        <DataGridDateColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.DataFim)" Caption="Fim" Editable="true" />
+                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.CursoID)" Caption="Curso" Editable="true">
+                                            <DisplayTemplate>
+                                                @context.Curso?.Nome
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.SalaID)" Caption="Sala" Editable="true">
+                                            <DisplayTemplate>
+                                                @context.Sala?.Nome
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.UhID)" Caption="Sala" Editable="true">
+                                            <DisplayTemplate>
+                                                @context.Uh?.UhIATA
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                    </DataGrid>
+                                        }
+                                    </ContentTemplate>
+                                    <FaultedContentTemplate>
+                                        <text>ERRO!</text>
+                                    </FaultedContentTemplate>
+                                </SpinLoader>
+                            </CardText>
+                        </CardBody>
+                    </Card>
+                </Column>
+            </Row>
+        </Container>
+
+        <ConfirmDialog OnClick="@Delete">
+            <ConfirmText>
+                <p>Deseja de apagar @itemToDelete ?</p>
+                <p>Não será possível recuperar este registo!</p>
+            </ConfirmText>
+        </ConfirmDialog>
+        <MarcacaoModal Model=Model DataChanged="@DataChanged">
+            <CustomHeader>@customHeader</CustomHeader>
+        </MarcacaoModal>
+
+    </Authorized>
+    <NotAuthorized>
+        <p>Não está logado.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    MarcacaoInicial[] marcacoes;
+    MarcacaoInicial Model = new MarcacaoInicial();
+    Guid MarcacaoToDelete { get; set; }
+    string itemToDelete { get; set; }
+    string customHeader = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        marcacoes = await client.GetFromJsonAsync<MarcacaoInicial[]>("api/marcacao");
+    }
+
+    private async void DataChanged()
+    {
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+
+    private void PrepareToAdd()
+    {
+        Model = new MarcacaoInicial();
+        customHeader = "Criar Marcação";
+    }
+
+    private void PrepareForEdit(MarcacaoInicial marcacao)
+    {
+        customHeader = "Editar Marcação";
+        Model = marcacao;
+    }
+
+    private void PrepareForDelete(MarcacaoInicial marcacao)
+    {
+        MarcacaoToDelete = marcacao.ID;
+        itemToDelete = marcacao.Curso.Nome + " de " + marcacao.DataInicio + " a " + marcacao.DataFim;
+    }
+
+    async Task Delete()
+    {
+        var response = await client.DeleteAsync($"api/marcacao/{MarcacaoToDelete}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            await js.InvokeAsync<object>("global.closeModal", "confirmDeleteModal");
+
+            Model = new MarcacaoInicial();
+            itemToDelete = string.Empty;
+
+            await Task.Delay(100);
+            Toaster.Error("Marcação apagada com sucesso", "Sucesso!");
+        }
+
+        await OnInitializedAsync();
+    }
+
+    void OnSelectedRowStyling(MarcacaoInicial marcacao, DataGridRowStyling styling)
+    {
+        styling.Background = Background.Light;
+    }
+}

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
@@ -22,10 +21,6 @@ namespace Formacao2021.Shared.Models.Tabelas
             get => _nome;
             set => _nome = value?.ToUpper(CultureInfo.InvariantCulture);
         }
-
-        #region Relações
-        public virtual ICollection<Formando> Formandos { get; set; }
-        #endregion
 
         #region BaseEntity
         [Display(Name = "Registo criado em:", ShortName = "Criado em:")]

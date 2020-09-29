@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
@@ -28,8 +27,6 @@ namespace Formacao2021.Shared.Models.Tabelas
         [Required, Display(Name = "Unidade de hanling", ShortName = "UH")]
         public Guid UhID { get; set; }
         public Uh Uh { get; set; }
-        public virtual ICollection<MarcacaoInicial> MarcacoesIniciais { get; set; }
-
         #endregion
 
         #region BaseEntity

@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Formacao2021.Shared.Models.Tabelas;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Formacao2021.Shared.Models.Tabelas
+namespace Formacao2021.Shared.Models.Marcacoes
 {
     [Table("MarcacoesIniciais")]
     public class MarcacaoInicial : IBaseEntity
@@ -16,8 +17,8 @@ namespace Formacao2021.Shared.Models.Tabelas
         [Required, Display(Name = "Data de fim", ShortName = "Fim")]
         public DateTime DataFim { get; set; }
 
-        [Required(ErrorMessage = "O campo Capaciade é obrigatório"), Display(Name = "Capaciade")]
-        public int Capaciade { get; set; }
+        [Required(ErrorMessage = "O campo Capacidade é obrigatório"), Display(Name = "Capacidade")]
+        public int Capacidade { get; set; }
 
         #region Relações
         [Required, Display(Name = "Sala")]

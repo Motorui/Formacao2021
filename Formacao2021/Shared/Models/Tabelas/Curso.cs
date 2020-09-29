@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
@@ -34,13 +33,6 @@ namespace Formacao2021.Shared.Models.Tabelas
         public int Validade { get; set; }
         [Display(Name = "Côr")]
         public string Cor { get; set; }
-
-        #region Relações
-        public virtual ICollection<Refrescamento> Refrescamentos { get; set; }
-        public virtual ICollection<CursosFormando> CursosFormandos { get; set; }
-        public virtual ICollection<MarcacaoInicial> MarcacoesIniciais { get; set; }
-
-        #endregion
 
         #region BaseEntity
         [Display(Name = "Registo criado em:", ShortName = "Criado em:")]

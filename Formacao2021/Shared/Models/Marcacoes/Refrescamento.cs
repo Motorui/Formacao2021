@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Formacao2021.Shared.Models.Tabelas;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 
-namespace Formacao2021.Shared.Models.Tabelas
+namespace Formacao2021.Shared.Models.Marcacoes
 {
     [Table("Refrescamentos")]
     public class Refrescamento : IBaseEntity
@@ -43,7 +43,6 @@ namespace Formacao2021.Shared.Models.Tabelas
         #region Relações
         public Guid CursoID { get; set; }
         public Curso Curso { get; set; }
-        public virtual ICollection<RefrescamentosFormando> RefrescamentosFormandos { get; set; }
         #endregion
 
         #region BaseEntity
