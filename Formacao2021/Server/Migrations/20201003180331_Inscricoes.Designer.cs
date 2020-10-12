@@ -4,14 +4,16 @@ using Formacao2021.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Formacao2021.Server.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20201003180331_Inscricoes")]
+    partial class Inscricoes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,7 +49,7 @@ namespace Formacao2021.Server.Migrations
                         new
                         {
                             Id = "3b04aa8e-4307-4711-93a4-e2fb2f09f5a5",
-                            ConcurrencyStamp = "f454c11c-8ec9-4a7b-8a91-6b56b926c225",
+                            ConcurrencyStamp = "f3943327-7367-4757-a941-e578c0188e35",
                             CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "User",
                             NormalizedName = "USER"
@@ -55,7 +57,7 @@ namespace Formacao2021.Server.Migrations
                         new
                         {
                             Id = "e7526d31-3669-4f80-8e85-046e272634b6",
-                            ConcurrencyStamp = "257fe161-aa07-4d8c-b3b0-7e7775b7485b",
+                            ConcurrencyStamp = "d80f113f-059d-4065-8791-96d5c057e3b6",
                             CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Admin",
                             NormalizedName = "ADMIN"
@@ -123,7 +125,7 @@ namespace Formacao2021.Server.Migrations
                         {
                             Id = "ed3083c5-dada-44f6-8f3e-fec4c3c4477f",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "f03d16f2-90c6-434b-a36c-8a7ca7bc43c0",
+                            ConcurrencyStamp = "d0573fc9-78cc-4d94-ac48-931de919f6ad",
                             Email = "rui.santos@portway.pt",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
@@ -132,7 +134,7 @@ namespace Formacao2021.Server.Migrations
                             NormalizedUserName = "RAPEREIRA",
                             PasswordHash = "AQAAAAEAACcQAAAAEK9oxRxsEji9BpEDLL5EwMNTFo3ZsVhz9hXDT+9sNzP9n1pQhQ55VzY7yt00BKRJeg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4ff00216-786b-48fd-9275-69d2c29dcdf9",
+                            SecurityStamp = "346b569d-a5e7-40e7-b2ed-49e101a80faf",
                             TwoFactorEnabled = false,
                             UserName = "RaPereira"
                         });
@@ -220,9 +222,6 @@ namespace Formacao2021.Server.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Observacoes")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("FormandoID", "MarcacaoID");
@@ -328,18 +327,6 @@ namespace Formacao2021.Server.Migrations
                     b.Property<Guid>("CursoID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastUpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("FormandoID", "CursoID");
 
                     b.ToTable("CursosFormandos");
@@ -441,8 +428,14 @@ namespace Formacao2021.Server.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("DepartamentoID")
+                    b.Property<Guid?>("DepartamentoID")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("EmpresaID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Interno")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastUpdatedAt")
                         .HasColumnType("datetime2");
@@ -454,17 +447,11 @@ namespace Formacao2021.Server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Numero")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("UhID")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("ID");
 
                     b.HasIndex("DepartamentoID");
 
-                    b.HasIndex("UhID");
+                    b.HasIndex("EmpresaID");
 
                     b.ToTable("Formandos");
                 });
@@ -585,7 +572,7 @@ namespace Formacao2021.Server.Migrations
 
             modelBuilder.Entity("Formacao2021.Shared.Models.Tabelas.Uh", b =>
                 {
-                    b.Property<Guid>("ID")
+                    b.Property<Guid>("UhID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -595,50 +582,50 @@ namespace Formacao2021.Server.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IATA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(3)")
-                        .HasMaxLength(3);
-
                     b.Property<DateTime?>("LastUpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("UhIATA")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(3)")
+                        .HasMaxLength(3);
+
+                    b.Property<string>("UhNome")
                         .IsRequired()
                         .HasColumnType("nvarchar(25)")
                         .HasMaxLength(25);
 
-                    b.HasKey("ID");
+                    b.HasKey("UhID");
 
                     b.ToTable("Uhs");
 
                     b.HasData(
                         new
                         {
-                            ID = new Guid("807aeb52-f2d7-4152-8410-a668604a41d4"),
-                            IATA = "LIS",
-                            Nome = "LISBOA"
+                            UhID = new Guid("807aeb52-f2d7-4152-8410-a668604a41d4"),
+                            UhIATA = "LIS",
+                            UhNome = "LISBOA"
                         },
                         new
                         {
-                            ID = new Guid("7a525467-1367-4ddf-9802-6bc44ae695ac"),
-                            IATA = "OPO",
-                            Nome = "PORTO"
+                            UhID = new Guid("7a525467-1367-4ddf-9802-6bc44ae695ac"),
+                            UhIATA = "OPO",
+                            UhNome = "PORTO"
                         },
                         new
                         {
-                            ID = new Guid("7b277149-86d7-4c19-816c-0e97e803f491"),
-                            IATA = "FAO",
-                            Nome = "FARO"
+                            UhID = new Guid("7b277149-86d7-4c19-816c-0e97e803f491"),
+                            UhIATA = "FAO",
+                            UhNome = "FARO"
                         },
                         new
                         {
-                            ID = new Guid("7f6e20bd-7106-4c6f-a23d-dde9b0a1e471"),
-                            IATA = "FNC",
-                            Nome = "FUNCHAL"
+                            UhID = new Guid("7f6e20bd-7106-4c6f-a23d-dde9b0a1e471"),
+                            UhIATA = "FNC",
+                            UhNome = "FUNCHAL"
                         });
                 });
 
@@ -782,15 +769,11 @@ namespace Formacao2021.Server.Migrations
                 {
                     b.HasOne("Formacao2021.Shared.Models.Tabelas.Departamento", "Departamento")
                         .WithMany()
-                        .HasForeignKey("DepartamentoID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("DepartamentoID");
 
-                    b.HasOne("Formacao2021.Shared.Models.Tabelas.Uh", "Uh")
-                        .WithMany("Formando")
-                        .HasForeignKey("UhID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("Formacao2021.Shared.Models.Tabelas.Empresa", "Empresa")
+                        .WithMany()
+                        .HasForeignKey("EmpresaID");
                 });
 
             modelBuilder.Entity("Formacao2021.Shared.Models.Tabelas.FormandoDetalhe", b =>

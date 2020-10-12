@@ -2,15 +2,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Formacao2021.Shared.Models.Tabelas
+namespace Formacao2021.Shared.Models.Marcacoes
 {
-    [Table("CursosFormandos")]
-    public class CursosFormando : IBaseEntity
+    [Table("Inscricoes")]
+    public class Inscricao : IBaseEntity
     {
-        [ForeignKey("FormandoID")]
+        [Key, ForeignKey("Formando"), Display(Name = "Formando")]
         public Guid FormandoID { get; set; }
-        [ForeignKey("CursoID")]
-        public Guid CursoID { get; set; }
+        [Key, ForeignKey("Marcacao"), Display(Name = "Marcação")]
+        public Guid MarcacaoID { get; set; }
+        [Display(Name = "Observações")]
+        public string Observacoes { get; set; }
 
         #region BaseEntity
         [Display(Name = "Registo criado em:", ShortName = "Criado em:")]

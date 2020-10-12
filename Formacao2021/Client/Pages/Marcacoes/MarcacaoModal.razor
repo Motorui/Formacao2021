@@ -1,42 +1,58 @@
-﻿@inject Sotsera.Blazor.Toaster.IToaster Toaster
+﻿@using System.Security.Claims
+@inject AppStateProvider authStateProvider
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
 @inject HttpClient http
 @inject IJSRuntime js
 
 <Modal @ref="@Modal" role="dialog" id="marcacaoModal">
     <ModalBackdrop />
-    <ModalContent Centered="true" Size="ModalSize.Default">
+    <ModalContent Centered="true" Size="ModalSize.Large">
         <ModalHeader>
             <ModalTitle>@CustomHeader</ModalTitle>
             <CloseButton Clicked="@(() => CloseModal("marcacaoModal"))" />
         </ModalHeader>
-        <EditForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
+        <EditForm Model="Model" OnValidSubmit="@HandleValidSubmit">
             <ModalBody>
                 <DataAnnotationsValidator />
                 <input type="hidden" @bind-value="@Model.ID" />
-                <Field Horizontal="true">
-                    <FieldLabel ColumnSize="ColumnSize.Is2">Início</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.Is10">
-                        <DateEdit TValue="DateTime" @bind-Date="@Model.DataInicio">
+                <Fields>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Data Início</FieldLabel>
+                        <DateEdit TValue="DateTime" Date="@dataInicio" DateChanged="@OnDataInicioChanged">
                             <FieldHelp>Inserir data de início</FieldHelp>
                         </DateEdit>
-                        <ValidationMessage For="@(() => Model.DataInicio)" />
-                    </FieldBody>
-                </Field>
-                <Field Horizontal="true">
-                    <FieldLabel ColumnSize="ColumnSize.Is2">Fim</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.Is10">
-                        <DateEdit TValue="DateTime" @bind-Date="@Model.DataFim">
+                        @if (erros.ContainsKey("erroData"))
+                        {
+                            <span class="field-validation-error text-danger">@erros["erroData"]</span>
+                        }
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Hora Início</FieldLabel>
+                        <TimeEdit TValue="TimeSpan" Time="@horaInicio" TimeChanged="OnTimeInicioChanged" />
+                    </Field>
+                </Fields>
+                <Fields>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Data Fim</FieldLabel>
+                        <DateEdit TValue="DateTime" Date="@dataFim" DateChanged="@OnDataFimChanged">
                             <FieldHelp>Inserir data de fim</FieldHelp>
                         </DateEdit>
-                        <ValidationMessage For="@(() => Model.DataFim)" />
-                    </FieldBody>
-                </Field>
+                        @if (erros.ContainsKey("erroData"))
+                        {
+                            <span class="field-validation-error text-danger">@erros["erroData"]</span>
+                        }
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Hora Fim</FieldLabel>
+                        <TimeEdit TValue="TimeSpan" Time="@horaFim" TimeChanged="OnTimeFimChanged" />
+                    </Field>
+                </Fields>
                 <Field Horizontal="true">
                     <FieldLabel ColumnSize="ColumnSize.Is2">Curso</FieldLabel>
                     <FieldBody ColumnSize="ColumnSize.Is10">
                         @if (cursos != null)
                         {
-                            <Select TValue="Guid" @bind-SelectedValue="@Model.CursoID">
+                            <Select TValue="Guid" SelectedValue="@Model.CursoID" SelectedValueChanged="@OnSelectedCursoChanged">
                                 <SelectItem Value="@Guid.Empty">Selecionar</SelectItem>
                                 @foreach (var cur in cursos)
                                 {
@@ -46,6 +62,10 @@
                             </Select>
                         }
                     </FieldBody>
+                    @if (erros.ContainsKey("erroCurso"))
+                    {
+                        <span class="field-validation-error text-danger">@erros["erroCurso"]</span>
+                    }
                 </Field>
                 <Field Horizontal="true">
                     <FieldLabel ColumnSize="ColumnSize.Is2">Capacidade</FieldLabel>
@@ -59,35 +79,49 @@
                 <Fields>
                     <Field ColumnSize="ColumnSize.Is6.OnDesktop">
                         <FieldLabel>Uh</FieldLabel>
-                        @if (uhs != null)
-                        {
-                            <Select TValue="Guid" @bind-SelectedValue="@Model.UhID">
-
+                        <Select TValue="Guid" SelectedValue="@Model.UhID" SelectedValueChanged="@OnSelectUhChanged">
+                            @if (uhs != null)
+                            {
+                                <SelectItem Value="@Guid.Empty">Selecionar Uh</SelectItem>
                                 @foreach (var uh in uhs)
                                 {
-                                    <SelectItem Value="@uh.UhID">@uh.UhIATA</SelectItem>
+                                    <SelectItem Value="@uh.ID">@uh.IATA</SelectItem>
                                 }
-                            </Select>
-                            <FieldHelp>Selecionar a unidade de handling</FieldHelp>
+                            }
+                        </Select>
+                        <FieldHelp>Selecionar a unidade de handling</FieldHelp>
+                        @if (erros.ContainsKey("erroUh"))
+                        {
+                            <span class="field-validation-error text-danger">@erros["erroUh"]</span>
                         }
-                        <ValidationMessage For="@(() => Model.UhID)" />
                     </Field>
                     <Field ColumnSize="ColumnSize.Is6.OnDesktop">
                         <FieldLabel>Sala</FieldLabel>
-                        @if (salas != null)
-                        {
-                            <Select TValue="Guid" @bind-SelectedValue="@Model.SalaID">
-
+                        <Select TValue="Guid" SelectedValue="@Model.SalaID" Disabled="@salaOnOff" SelectedValueChanged="@OnSelectSalaChanged">
+                            @if (salas != null)
+                            {
                                 @foreach (var sala in salas)
                                 {
                                     <SelectItem Value="@sala.ID">@sala.Nome</SelectItem>
                                 }
-                            </Select>
-                            <FieldHelp>Selecionar a sala onde se vai realizar</FieldHelp>
+                            }
+                        </Select>
+                        <FieldHelp>Selecionar a sala onde se vai realizar</FieldHelp>
+                        @if (erros.ContainsKey("erroSala"))
+                        {
+                            <span class="field-validation-error text-danger">@erros["erroSala"]</span>
                         }
-                        <ValidationMessage For="@(() => Model.SalaID)" />
                     </Field>
                 </Fields>
+                <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Observações</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <MemoEdit @bind-Text="@Model.Observacoes">
+                            <FieldHelp>Observações (não obrigatório)</FieldHelp>
+                        </MemoEdit>
+                        <ValidationMessage For="@(() => Model.Observacoes)" />
+                    </FieldBody>
+                </Field>
             </ModalBody>
             <ModalFooter>
                 <Tooltip Text="Gravar">
@@ -109,29 +143,69 @@
     private Modal Modal;
     [Parameter] public Action DataChanged { get; set; }
     [Parameter] public RenderFragment CustomHeader { get; set; }
-    [Parameter] public MarcacaoInicial Model { get; set; }
+    [Parameter] public Marcacao Model { get; set; }
+    [CascadingParameter] Task<AuthenticationState> AuthenticationState { get; set; }
+
     Uh[] uhs;
     Sala[] salas;
+    bool salaOnOff = true;
     Curso[] cursos;
+
+    DateTime dataInicio { get; set; } = DateTime.UtcNow;
+    TimeSpan horaInicio { get; set; } = new TimeSpan(09, 00, 00);
+    DateTime dataFim { get; set; } = DateTime.UtcNow;
+    TimeSpan horaFim { get; set; } = new TimeSpan(18, 00, 00);
+
+    Dictionary<string, string> erros = new Dictionary<string, string>();
 
     protected override async Task OnInitializedAsync()
     {
-        uhs = await http.GetFromJsonAsync<Uh[]>("api/uh");
-        salas = await http.GetFromJsonAsync<Sala[]>("api/sala");
+        string uid = (await AuthenticationState).User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        RegisterUserUh[] userUhs = await http.GetFromJsonAsync<RegisterUserUh[]>("api/auth/getuseruhs");
+        List<Guid> ownedUhs = userUhs.Where(i => i.UserId == new Guid(uid)).Select(u => u.UhID).ToList();
+        Uh[] uhList = await http.GetFromJsonAsync<Uh[]>("api/uh");
+
+        uhs = uhList.Where(i => ownedUhs.Contains(i.ID)).ToArray();
+        salas = null;
         cursos = await http.GetFromJsonAsync<Curso[]>("api/curso");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Model.ID == Guid.Empty)
+        {
+            Model.DataInicio = dataInicio.Date + horaInicio;
+            Model.DataFim = dataFim.Date + horaFim;
+            Model.Capacidade = 8;
+            Model.CursoID = Guid.Empty;
+            Model.UhID = Guid.Empty;
+            Model.SalaID = Guid.Empty;
+        }
     }
 
     private async void HandleValidSubmit()
     {
-        if (Model.ID == Guid.Empty)
+        var dateIsValid = CustomDateTimeValidation(Model.DataInicio, Model.DataFim);
+        var cursoUhIsValid = CustomCursoUhValidation(Model.CursoID, Model.UhID, Model.SalaID);
+        if (dateIsValid && cursoUhIsValid)
         {
-            await http.PostAsJsonAsync("api/marcacao", Model);
-            Toaster.Success("Marcação criada com sucesso", "Sucesso!");
+            erros.Clear();
+
+            if (Model.ID == Guid.Empty)
+            {
+                await http.PostAsJsonAsync("api/marcacao", Model);
+                Toaster.Success("Marcação criada com sucesso", "Sucesso!");
+            }
+            else
+            {
+                await http.PutAsJsonAsync("api/marcacao", Model);
+                Toaster.Info("Marcação editada com sucesso", "Sucesso!");
+            }
+
         }
         else
         {
-            await http.PutAsJsonAsync("api/marcacao", Model);
-            Toaster.Info("Marcação editada com sucesso", "Sucesso!");
+            return;
         }
 
         await CloseModal("marcacaoModal");
@@ -142,4 +216,114 @@
     {
         await js.InvokeAsync<object>("global.closeModal", modalId);
     }
+
+    private bool CustomCursoUhValidation(Guid cursoId, Guid uhId, Guid salaId)
+    {
+
+        if (cursoId == null || cursoId == Guid.Empty)
+        {
+            erros.Add("erroCurso", "Por favor selecione um curso");
+            return false;
+        }
+        if (uhId == null || uhId == Guid.Empty)
+        {
+            erros.Add("erroUh", "Por favor selecione uma unidade de handling");
+            return false;
+        }
+        if (salaId == null || salaId == Guid.Empty)
+        {
+            erros.Add("erroSala", "Por favor selecione uma Sala");
+            return false;
+        }
+        return true;
+    }
+    void OnSelectedCursoChanged(Guid cursoId)
+    {
+        Model.CursoID = cursoId;
+        var isValid = Model.CursoID != null || Model.CursoID != Guid.Empty ? true : false;
+        if (isValid)
+        {
+            erros.Remove("erroCurso");
+        }
+    }
+    async Task OnSelectUhChanged(Guid uhId)
+    {
+        Model.UhID = uhId;
+        var lista = await http.GetFromJsonAsync<Sala[]>("api/sala");
+        salas = lista.Where(i => i.UhID == uhId).ToArray();
+        Model.SalaID = salas.Select(i => i.ID).FirstOrDefault();
+        salaOnOff = salas.Count() > 0 ? false : true;
+
+        var isValid = Model.UhID != null || Model.UhID != Guid.Empty ? true : false;
+        if (isValid)
+        {
+            erros.Remove("erroUh");
+        }
+    }
+    void OnSelectSalaChanged(Guid salaId)
+    {
+        Model.SalaID = salaId;
+        var isValid = Model.SalaID != null || Model.SalaID != Guid.Empty ? true : false;
+        if (isValid)
+        {
+            erros.Remove("erroSala");
+        }
+    }
+
+    #region CheckDates
+    private bool CustomDateTimeValidation(DateTime inicio, DateTime fim)
+    {
+
+        if (inicio >= fim)
+        {
+            erros.Add("erroData", "A data de início deve ser inferior à data de fim");
+            return false;
+        }
+        return true;
+    }
+    void OnDataInicioChanged(DateTime date)
+    {
+        dataInicio = date;
+        Model.DataInicio = dataInicio.Date + horaInicio;
+        Model.DataFim = dataFim.Date + horaFim;
+        var isValid = CustomDateTimeValidation(Model.DataInicio, Model.DataFim);
+        if (isValid)
+        {
+            erros.Remove("erroData");
+        }
+    }
+    void OnTimeInicioChanged(TimeSpan time)
+    {
+        horaInicio = time;
+        Model.DataInicio = dataInicio.Date + horaInicio;
+        Model.DataFim = dataFim.Date + horaFim;
+        var isValid = CustomDateTimeValidation(Model.DataInicio, Model.DataFim);
+        if (isValid)
+        {
+            erros.Remove("erroData");
+        }
+    }
+    void OnDataFimChanged(DateTime date)
+    {
+        dataFim = date;
+        Model.DataInicio = dataInicio.Date + horaInicio;
+        Model.DataFim = dataFim.Date + horaFim;
+        var isValid = CustomDateTimeValidation(Model.DataInicio, Model.DataFim);
+        if (isValid)
+        {
+            erros.Remove("erroData");
+        }
+    }
+    void OnTimeFimChanged(TimeSpan time)
+    {
+        horaFim = time;
+        Model.DataInicio = dataInicio.Date + horaInicio;
+        Model.DataFim = dataFim.Date + horaFim;
+        var isValid = CustomDateTimeValidation(Model.DataInicio, Model.DataFim);
+        if (isValid)
+        {
+            erros.Remove("erroData");
+        }
+    }
+    #endregion
 }

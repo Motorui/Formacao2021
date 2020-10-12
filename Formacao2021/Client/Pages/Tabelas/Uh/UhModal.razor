@@ -12,20 +12,20 @@
         <EditForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
             <ModalBody>
                 <DataAnnotationsValidator />
-                <input type="hidden" @bind-value="@Model.UhID" />
+                <input type="hidden" @bind-value="@Model.ID" />
                 <Field>
                     <FieldLabel>Nome</FieldLabel>
-                    <TextEdit @bind-Text="@Model.UhNome" MaxLength="25">
+                    <TextEdit @bind-Text="@Model.Nome" MaxLength="25">
                         <FieldHelp>Inserir nome da unidade de handling</FieldHelp>
                     </TextEdit>
-                    <ValidationMessage For="@(() => Model.UhNome)" />
+                    <ValidationMessage For="@(() => Model.Nome)" />
                 </Field>
                 <Field>
                     <FieldLabel>IATA</FieldLabel>
-                    <TextEdit @bind-Text="@Model.UhIATA" MaxLength="3">
+                    <TextEdit @bind-Text="@Model.IATA" MaxLength="3">
                         <FieldHelp>Inserir o código IATA</FieldHelp>
                     </TextEdit>
-                    <ValidationMessage For="@(() => Model.UhIATA)" />
+                    <ValidationMessage For="@(() => Model.IATA)" />
                 </Field>
             </ModalBody>
             <ModalFooter>
@@ -52,7 +52,7 @@
 
     private async void HandleValidSubmit()
     {
-        if (Model.UhID == Guid.Empty)
+        if (Model.ID == Guid.Empty)
         {
             await http.PostAsJsonAsync("api/uh", Model);
             Toaster.Success("UH adicionada com sucesso", "Sucesso!");

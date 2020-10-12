@@ -1,4 +1,5 @@
 ﻿using Formacao2021.Server.Data;
+using Formacao2021.Shared.Models.Marcacoes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,10 +9,10 @@ namespace Formacao2021.Server.Controllers.Marcacao
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MarcacaoController : ControllerBase
+    public class InscricaoController : ControllerBase
     {
         private readonly AppDBContext _db;
-        public MarcacaoController(AppDBContext context)
+        public InscricaoController(AppDBContext context)
         {
             this._db = context;
         }
@@ -19,42 +20,40 @@ namespace Formacao2021.Server.Controllers.Marcacao
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var marcs = await _db.Marcacoes
-                .Include(s => s.Sala)
-                .Include(u => u.Uh)
-                .Include(c => c.Curso)
+            var ins = await _db.Inscricoes
                 .ToListAsync();
-            return Ok(marcs);
+            return Ok(ins);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(Guid id)
+        public async Task<IActionResult> Get(Guid MId)
         {
-            var mar = await _db.Marcacoes.FirstOrDefaultAsync(a => a.ID == id);
+            var mar = await _db.Inscricoes
+                .FirstOrDefaultAsync(a => a.MarcacaoID == MId);
             return Ok(mar);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Shared.Models.Marcacoes.Marcacao mar)
+        public async Task<IActionResult> Post(Inscricao ins)
         {
-            _db.Add(mar);
+            _db.Add(ins);
             await _db.SaveChangesAsync();
-            return Ok(mar.ID);
+            return Ok(ins);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put(Shared.Models.Marcacoes.Marcacao mar)
+        public async Task<IActionResult> Put(Inscricao ins)
         {
-            _db.Entry(mar).State = EntityState.Modified;
+            _db.Entry(ins).State = EntityState.Modified;
             await _db.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid MId, Guid FId)
         {
-            var mar = new Shared.Models.Marcacoes.Marcacao { ID = id };
-            _db.Remove(mar);
+            var ins = new Inscricao { MarcacaoID = MId, FormandoID  = FId };
+            _db.Remove(ins);
             await _db.SaveChangesAsync();
             return NoContent();
         }

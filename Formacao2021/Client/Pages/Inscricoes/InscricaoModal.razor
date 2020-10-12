@@ -1,0 +1,219 @@
+﻿@using Blazorise.Components
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@Modal" role="dialog" id="inscricaoModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Large">
+        <ModalHeader>
+            <ModalTitle>@CustomHeader</ModalTitle>
+            <CloseButton Clicked="@(() => CloseModal("inscricaoModal"))" />
+        </ModalHeader>
+        <EditForm Model="Model" OnValidSubmit="@HandleValidSubmit">
+            <ModalBody>
+                <DataAnnotationsValidator />
+                @if (MarcacaoModel != null)
+                {
+                    <input type="hidden" @bind-value="MarcacaoModel.ID" />
+                }
+                <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                    <FieldLabel>Departamento</FieldLabel>
+                    <Select TValue="Guid" SelectedValue="@departamentoID" SelectedValueChanged="@OnSelectDepartamentoChanged">
+                        @if (departamentos != null)
+                        {
+                            <SelectItem Value="@Guid.Empty">Departamento</SelectItem>
+                            @foreach (var dep in departamentos)
+                            {
+                                <SelectItem Value="@dep.ID">@dep.Nome</SelectItem>
+                            }
+                        }
+                    </Select>
+                    <FieldHelp>Departamento</FieldHelp>
+                    @if (erros.ContainsKey("erroDepartamento"))
+                    {
+                        <span class="field-validation-error text-danger">@erros["erroDepartamento"]</span>
+                    }
+                </Field>
+                <Fields ColumnSize="ColumnSize.Is6.OnDesktop">
+                    <Field>
+                        <FieldLabel>Número</FieldLabel>
+                        @if (Formandos != null)
+                        {
+                            <Autocomplete Data="@Formandos"
+                                          TextField="@((item)=>item.Nome)"
+                                          ValueField="@((item)=>item.ID)"
+                                          SelectedValue="@selectedNomeValue"
+                                          SelectedValueChanged="@MyNomeSearchHandler"
+                                          MinLength="2"
+                                          Placeholder="procurar..." />
+                        }
+                        <FieldHelp>Número de funcionário</FieldHelp>
+                    </Field>
+                    <Field>
+                        <FieldLabel>Nome</FieldLabel>
+                        @if (Formandos != null)
+                        {
+                            <Autocomplete Data="@Formandos"
+                                          TextField="@((item)=>item.Numero.ToString())"
+                                          ValueField="@((item)=>item.ID)"
+                                          SelectedValue="@selectedNumeroValue"
+                                          SelectedValueChanged="@MyNomeSearchHandler"
+                                          MinLength="2"
+                                          Placeholder="procurar..." />
+                        }
+                        <FieldHelp>Nome do colaborador</FieldHelp>
+                    </Field>
+
+                    @if (erros.ContainsKey("erroFormando"))
+                    {
+                        <span class="field-validation-error text-danger">@erros["erroFormando"]</span>
+                    }
+                </Fields>
+                @if (erros.ContainsKey("erroJaInscrito"))
+                {
+                    <span class="field-validation-error text-danger">@erros["erroJaInscrito"]</span>
+                }
+                @if (erros.ContainsKey("erroOcupado"))
+                {
+                    <span class="field-validation-error text-danger">@erros["erroOcupado"]</span>
+                }
+            </ModalBody>
+            <ModalFooter>
+                <Tooltip Text="Gravar">
+                    <Button Color="Color.Success" Type="ButtonType.Submit">
+                        <Icon Name="IconName.Save" /> Submeter
+                    </Button>
+                </Tooltip>
+                <Tooltip Text="Fechar">
+                    <Button Color="Color.Warning" Clicked="@(() => CloseModal("inscricaoModal"))">
+                        <Icon Name="IconName.StepBackward" /> Cancelar
+                    </Button>
+                </Tooltip>
+            </ModalFooter>
+        </EditForm>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal Modal;
+    [Parameter] public Action DataChanged { get; set; }
+    [Parameter] public RenderFragment CustomHeader { get; set; }
+    [Parameter] public Marcacao MarcacaoModel { get; set; }
+    [Parameter] public Uh[] Uhs { get; set; }
+    [Parameter] public Marcacao[] Marcacoes { get; set; }
+    [Parameter] public Formando[] Formandos { get; set; }
+    [Parameter] public Inscricao[] Inscricoes { get; set; }
+
+    Inscricao Model = new Inscricao();
+    public Departamento[] departamentos { get; set; }
+    Guid departamentoID { get; set; } = Guid.Empty;
+
+    Dictionary<string, string> erros = new Dictionary<string, string>();
+    object selectedNumeroValue { get; set; }
+    object selectedNomeValue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        departamentos = await http.GetFromJsonAsync<Departamento[]>("api/departamento");
+    }
+
+    protected override void OnParametersSet()
+    {
+        Model.FormandoID = Guid.Empty;
+        selectedNumeroValue = null;
+        selectedNomeValue = null;
+
+        if (MarcacaoModel != null)
+        {
+            Model.MarcacaoID = MarcacaoModel.ID;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var IsValid = CustomValidation(Model.MarcacaoID, Model.FormandoID);
+        if (IsValid)
+        {
+            erros.Clear();
+
+            await http.PostAsJsonAsync("api/inscricao", Model);
+            Toaster.Success("Formando inscrito com sucesso", "Sucesso!");
+            Model = new Inscricao();
+        }
+        else
+        {
+            return;
+        }
+
+        await CloseModal("addInscricaoModal");
+        DataChanged?.Invoke();
+    }
+
+    private bool CustomValidation(Guid marcacaoId, Guid formandoId)
+    {
+        if (formandoId == null || formandoId == Guid.Empty)
+        {
+            erros.Add("erroFormando", "Por favor selecione um formando");
+            return false;
+        }
+        if (Inscricoes.Any(m => m.MarcacaoID == marcacaoId && m.FormandoID == formandoId))
+        {
+            erros.Add("erroJaInscrito", "O formando já se encontra inscrito nesta sessão");
+            return false;
+        }
+        List<Marcacao> ocupado;
+        var inscricoesFormando = Inscricoes.Where(m => m.FormandoID == formandoId).Select(i => i.MarcacaoID).ToList();
+        var marcacoesInscrito = Marcacoes.Where(i => inscricoesFormando.Contains(i.ID)).ToList();
+        if (marcacoesInscrito.Any())
+        {
+            ocupado = marcacoesInscrito
+            .Where(d => (MarcacaoModel.DataInicio >= d.DataInicio
+                && MarcacaoModel.DataInicio <= d.DataFim)).ToList();
+            if (ocupado.Any())
+            {
+                string curso = "";
+                foreach (var item in ocupado)
+                {
+                    curso += item.Curso.Nome;
+                }
+                erros.Add("erroOcupado", "O formando já se encontra inscrito nesse horário em " + curso);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    async Task OnSelectDepartamentoChanged(Guid id)
+    {
+        departamentoID = id;
+        var listaFormandos = await http.GetFromJsonAsync<Formando[]>("api/formando");
+        Formandos = listaFormandos.Where(d => d.DepartamentoID == id).ToArray();
+    }
+
+    void MyNomeSearchHandler(object id)
+    {
+        selectedNumeroValue = id;
+        selectedNomeValue = id;
+        Model.FormandoID = new Guid(selectedNomeValue.ToString());
+        erros.Clear();
+    }
+
+    void MyNumeroSearchHandler(object id)
+    {
+        selectedNumeroValue = id;
+        selectedNomeValue = id;
+        Model.FormandoID = new Guid(selectedNumeroValue.ToString());
+        erros.Clear();
+    }
+
+    private async Task CloseModal(string modalId)
+    {
+        selectedNumeroValue = null;
+        selectedNomeValue = null;
+        Model.FormandoID = Guid.Empty;
+        erros.Clear();
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}

@@ -84,7 +84,7 @@
                                                             @{var listUhs = userUhs.Where(i => i.UserId == user.Id);}
                                                             @foreach (var u in listUhs)
                                                             {
-                                                                var uhIata = uhsList.Where(i => i.UhID == u.UhID).Select(n => n.UhNome).FirstOrDefault().ToString();
+                                                                var uhIata = uhsList.Where(i => i.ID == u.UhID).Select(n => n.Nome).FirstOrDefault().ToString();
                                                                 <Badge Color="Color.Info">@uhIata</Badge>
                                                             }
                                                         </TableRowCell>

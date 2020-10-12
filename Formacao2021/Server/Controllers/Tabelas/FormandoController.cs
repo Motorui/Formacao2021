@@ -3,6 +3,7 @@ using Formacao2021.Shared.Models.Tabelas;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Formacao2021.Server.Controllers.Tabelas
@@ -21,8 +22,9 @@ namespace Formacao2021.Server.Controllers.Tabelas
         public async Task<IActionResult> Get()
         {
             var curs = await _db.Formandos
-                .Include(e => e.Empresa)
+                .Include(u => u.Uh)
                 .Include(d => d.Departamento)
+                .OrderBy(n=>n.Nome)
                 .ToListAsync();
             return Ok(curs);
         }

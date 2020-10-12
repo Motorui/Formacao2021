@@ -14,57 +14,53 @@
                 <DataAnnotationsValidator />
                 <input type="hidden" @bind-value="@Model.ID" />
                 <Field Horizontal="true">
+                    <FieldLabel ColumnSize="ColumnSize.Is2">Número</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.Is10">
+                        <NumericEdit  @bind-Value="@Model.Numero">
+                            <FieldHelp>Inserir número de funcionário</FieldHelp>
+                        </NumericEdit>
+                        <ValidationMessage For="@(() => Model.Numero)" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal="true">
                     <FieldLabel ColumnSize="ColumnSize.Is2">Nome</FieldLabel>
                     <FieldBody ColumnSize="ColumnSize.Is10">
                         <TextEdit @bind-Text="@Model.Nome">
-                            <FieldHelp>Inserir nome do curso</FieldHelp>
+                            <FieldHelp>Inserir nome do colaborador</FieldHelp>
                         </TextEdit>
                         <ValidationMessage For="@(() => Model.Nome)" />
                     </FieldBody>
                 </Field>
-                <Field Horizontal="true">
-                    <FieldLabel ColumnSize="ColumnSize.Is2">Interno?</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.Is10">
-                        <RadioGroup TValue="bool" Name="interno" @bind-CheckedValue="@Model.Interno">
-                            <Radio TValue="bool" Value="@true">Interno</Radio>
-                            <Radio TValue="bool" Value="@false">Externo</Radio>
-                        </RadioGroup>
-                        <ValidationMessage For="@(() => Model.Interno)" />
-                    </FieldBody>
-                </Field>
-                <Field Horizontal="true">
-                    <FieldLabel ColumnSize="ColumnSize.Is2">Empresa</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.Is10">
-                        @if (empresas != null)
+                <Fields>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Unidade de handling</FieldLabel>
+                        @if (uhs != null)
                         {
-                            <Select TValue="Guid?" @bind-SelectedValue="@Model.EmpresaID">
+                            <Select TValue="Guid" @bind-SelectedValue="@Model.UhID">
                                 <SelectItem Value="@Guid.Empty">Selecionar</SelectItem>
-                                @foreach (var emp in empresas)
+                                @foreach (var uh in uhs)
                                 {
-                                    <SelectItem Value="@emp.ID">@emp.Nome</SelectItem>
+                                    <SelectItem Value="@uh.ID">@uh.IATA</SelectItem>
                                 }
-                                <FieldHelp>por favor selecionar a empresa</FieldHelp>
+                                <FieldHelp>por favor selecionar a UH</FieldHelp>
                             </Select>
                         }
-                    </FieldBody>
-                </Field>
-                <Field Horizontal="true">
-                    <FieldLabel ColumnSize="ColumnSize.Is2">Departamento</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.Is10">
-                        @if (departamentos != null)
-                        {
-                            <Select TValue="Guid?" @bind-SelectedValue="@Model.DepartamentoID">
-                                <SelectItem Value="@Guid.Empty">Selecionar</SelectItem>
-                                @foreach (var dep in departamentos)
-                                {
-                                    <SelectItem Value="@dep.ID">@dep.Nome</SelectItem>
-                                }
-                                <FieldHelp>por favor selecionar o departamento</FieldHelp>
-                            </Select>
-                        }
-                    </FieldBody>
-                </Field>
-
+                    </Field>
+                    <Field ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <FieldLabel>Departamento</FieldLabel>
+                            @if (departamentos != null)
+                            {
+                                <Select TValue="Guid" @bind-SelectedValue="@Model.DepartamentoID">
+                                    <SelectItem Value="@Guid.Empty">Selecionar</SelectItem>
+                                    @foreach (var dep in departamentos)
+                                    {
+                                        <SelectItem Value="@dep.ID">@dep.Nome</SelectItem>
+                                    }
+                                    <FieldHelp>por favor selecionar o departamento</FieldHelp>
+                                </Select>
+                            }
+                    </Field>
+                </Fields>
             </ModalBody>
             <ModalFooter>
                 <Tooltip Text="Gravar">
@@ -87,12 +83,12 @@
     [Parameter] public Action DataChanged { get; set; }
     [Parameter] public RenderFragment CustomHeader { get; set; }
     [Parameter] public Formando Model { get; set; }
-    Empresa[] empresas;
+    Uh[] uhs;
     Departamento[] departamentos;
 
     protected override async Task OnInitializedAsync()
     {
-        empresas = await http.GetFromJsonAsync<Empresa[]>("api/empresa");
+        uhs = await http.GetFromJsonAsync<Uh[]>("api/uh");
         departamentos = await http.GetFromJsonAsync<Departamento[]>("api/departamento");
     }
 

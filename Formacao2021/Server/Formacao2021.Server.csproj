@@ -14,6 +14,18 @@
     <Compile Remove="Migrations\20200920191111_UserRelations.Designer.cs" />
     <Compile Remove="Migrations\20200920191320_UserRelations.cs" />
     <Compile Remove="Migrations\20200920191320_UserRelations.Designer.cs" />
+    <Compile Remove="Migrations\20201003165913_Inscricoes.cs" />
+    <Compile Remove="Migrations\20201003165913_Inscricoes.Designer.cs" />
+    <Compile Remove="Migrations\20201003171434_Inscricoes.cs" />
+    <Compile Remove="Migrations\20201003171434_Inscricoes.Designer.cs" />
+    <Compile Remove="Migrations\20201003175002_Inscricoes.cs" />
+    <Compile Remove="Migrations\20201003175002_Inscricoes.Designer.cs" />
+    <Compile Remove="Migrations\20201003175118_Inscricoes.cs" />
+    <Compile Remove="Migrations\20201003175118_Inscricoes.Designer.cs" />
+    <Compile Remove="Migrations\20201003180116_Inscricoes.cs" />
+    <Compile Remove="Migrations\20201003180116_Inscricoes.Designer.cs" />
+    <Compile Remove="Migrations\20201009224416_FormandosFix.cs" />
+    <Compile Remove="Migrations\20201009224416_FormandosFix.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

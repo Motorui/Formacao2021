@@ -37,11 +37,9 @@ namespace Formacao2021.Server.Data
         public DbSet<Formando> Formandos { get; set; }
         public DbSet<FormandoDetalhe> FormandosDetalhes { get; set; }
         public DbSet<Grupo> Grupos { get; set; }
-        public DbSet<MarcacaoInicial> MarcacoesIniciais { get; set; }
-        public DbSet<Refrescamento> Refrescamentos { get; set; }
-        public DbSet<RefrescamentosFormando> RefrescamentosFormandos { get; set; }
+        public DbSet<Marcacao> Marcacoes { get; set; }
         public DbSet<Sala> Salas { get; set; }
-
+        public DbSet<Inscricao> Inscricoes { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -55,23 +53,18 @@ namespace Formacao2021.Server.Data
 
             modelBuilder.Entity<UserUh>()
                 .HasKey(e => new { e.UserId, e.UhID });
-
             modelBuilder.Entity<IdentityUserToken<string>>()
                 .HasKey(e => new { e.UserId });
             modelBuilder.Entity<IdentityUserLogin<string>>()
                 .HasKey(e => new { e.UserId });
             modelBuilder.Entity<AppUserRole>()
                 .HasKey(e => new { e.UserId, e.RoleId });
-
             modelBuilder.Entity<CursosFormando>()
                 .HasKey(e => new { e.FormandoID, e.CursoID });
-            modelBuilder.Entity<RefrescamentosFormando>()
-                .HasKey(e => new { e.FormandoID, e.RefrescamentoID });
-
-            modelBuilder.Entity<MarcacaoInicial>()
-                .HasOne(u => u.Uh)
-                .WithMany(c => c.MarcacoesIniciais)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Inscricao>()
+                .HasKey(e => new { e.FormandoID, e.MarcacaoID });
+            modelBuilder.Entity<FormandoDetalhe>()
+                .HasKey(e => new { e.FormandoID});
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)

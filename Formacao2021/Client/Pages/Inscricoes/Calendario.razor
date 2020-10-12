@@ -1,0 +1,69 @@
+﻿@using System.Globalization
+<h3>Calendario</h3>
+<Row  Margin="Margin.Is4.FromBottom.Is2.FromTop">
+    <Column ColumnSize="ColumnSize.Is2">
+        <Select TValue="string" SelectedValue="@mesSelecionado" SelectedValueChanged="@OnMesSelecionadoChanged">
+            @foreach (var nomeMes in nomeMeses)
+            {
+                <SelectItem Value="@nomeMes">@nomeMes</SelectItem>
+            }
+        </Select>
+    </Column>
+</Row>
+<Row>
+    <Column ColumnSize="ColumnSize.Is12">
+        <Table Bordered="true">
+            <TableHeader ThemeContrast="ThemeContrast.Light">
+                <TableRow>
+                    @if (dias != null)
+                    {
+                        foreach (var item in dias)
+                        {
+                            <TableHeaderCell>@item</TableHeaderCell>
+                        }
+                    }
+                </TableRow>
+            </TableHeader>
+        </Table>
+    </Column>
+</Row>
+
+@code {
+    string mesSelecionado = DateTime.UtcNow.ToString("MMMM");
+    List<string> nomeMeses = new List<string>();
+    List<string> dias = new List<string>();
+
+    DateTime dataInicio = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    DateTime dataFim = (new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)).AddMonths(1).AddDays(-1);
+
+    protected override void OnInitialized()
+    {
+        nomeMeses = CultureInfo.GetCultureInfo("pt-PT").DateTimeFormat.MonthGenitiveNames.ToList();
+        GenerateCalendarHead();
+        GenerateCalendarBody();
+    }
+
+    void OnMesSelecionadoChanged(string mes)
+    {
+        mesSelecionado = mes;
+        int mesIndex = DateTime.ParseExact(mes, "mmmm", CultureInfo.CreateSpecificCulture("pt-PT")).Month;
+        dataInicio = new DateTime(DateTime.Now.Year, mesIndex, 1);
+        dataFim = (new DateTime(DateTime.Now.Year, mesIndex, 1)).AddMonths(1).AddDays(-1);
+    }
+
+    private void GenerateCalendarHead()
+    {
+        var dia1 = new List<string>();
+        for (var dt = dataInicio; dt <= dataFim; dt = dt.AddDays(1))
+        {
+            dia1.Add(dt.ToString("dddd"));
+        }
+        dia1 = CultureInfo.GetCultureInfo("pt-PT").DateTimeFormat.DayNames.ToList();
+        dias = dia1.Distinct().ToList();
+    }
+
+    private void GenerateCalendarBody()
+    {
+
+    }
+}

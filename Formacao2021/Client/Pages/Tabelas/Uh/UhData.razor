@@ -66,14 +66,14 @@
                                                                     </Button>
                                                                 </Tooltip>
                                                                 <Tooltip Text="Apagar UH">
-                                                                    <Button Color="Color.Danger" Clicked="@(() => PrepareForDelete(uh.UhID))"
+                                                                    <Button Color="Color.Danger" Clicked="@(() => PrepareForDelete(uh.ID))"
                                                                             data-toggle="modal" data-target="#confirmDeleteModal">
                                                                         <Icon Name="IconName.Delete" />
                                                                     </Button>
                                                                 </Tooltip>
                                                             </TableRowCell>
-                                                            <TableRowCell>@uh.UhNome</TableRowCell>
-                                                            <TableRowCell>@uh.UhIATA</TableRowCell>
+                                                            <TableRowCell>@uh.Nome</TableRowCell>
+                                                            <TableRowCell>@uh.IATA</TableRowCell>
                                                             @if (@authContext.User.IsInRole("temp")) //substituir por Admins
                                                             {
                                                                 <TableRowCell>@uh.CreatedAt</TableRowCell>
@@ -157,8 +157,8 @@
     private void PrepareForDelete(Guid uhId)
     {
         UhToDelete = uhId;
-        var uh = uhs.First(x => x.UhID == UhToDelete);
-        itemToDelete = uh.UhNome;
+        var uh = uhs.First(x => x.ID == UhToDelete);
+        itemToDelete = uh.Nome;
     }
 
     async Task Delete()

@@ -19,16 +19,16 @@ namespace Formacao2021.Shared.Models.Tabelas
             set => _nome = value?.ToUpper(CultureInfo.InvariantCulture);
         }
 
-        [Display(Name = "Interno?")]
-        public bool Interno { get; set; }
+        [Required, Display(Name = "Número", ShortName = "Núm.")]
+        public int Numero { get; set; }
 
         #region Relações
-        [Display(Name = "Empresa")]
-        public Guid? EmpresaID { get; set; }
-        public Empresa Empresa { get; set; }
+        [Required, Display(Name = "Unidade de handling", ShortName ="UH")]
+        public Guid UhID { get; set; }
+        public Uh Uh { get; set; }
 
-        [Display(Name = "Departamento")]
-        public Guid? DepartamentoID { get; set; }
+        [Required, Display(Name = "Departamento")]
+        public Guid DepartamentoID { get; set; }
         public Departamento Departamento { get; set; }
         #endregion
 

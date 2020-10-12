@@ -24,9 +24,9 @@ namespace Formacao2021.Server.Models.Identity
             {
                 AssignedUhDataList.Add(new AssignedUhData
                 {
-                    UhID = uh.UhID,
-                    Name = uh.UhNome,
-                    Assigned = userUhs.Contains(uh.UhID)
+                    UhID = uh.ID,
+                    Name = uh.Nome,
+                    Assigned = userUhs.Contains(uh.ID)
                 });
             }
         }
@@ -42,8 +42,8 @@ namespace Formacao2021.Server.Models.Identity
             {
                 AssignedUhDataList.Add(new AssignedUhData
                 {
-                    UhID = uh.UhID,
-                    Name = uh.UhNome,
+                    UhID = uh.ID,
+                    Name = uh.Nome,
                     Assigned = false
                 });
             }
@@ -63,23 +63,23 @@ namespace Formacao2021.Server.Models.Identity
             HashSet<Guid> userUhs = new HashSet<Guid>(userToUpdate.UserUhs.Select(u => u.UhID));
             foreach (Uh uh in db.Uhs)
             {
-                if (selectedUhsHS.Contains(uh.UhID.ToString()))
+                if (selectedUhsHS.Contains(uh.ID.ToString()))
                 {
-                    if (!userUhs.Contains(uh.UhID))
+                    if (!userUhs.Contains(uh.ID))
                     {
                         userToUpdate.UserUhs.Add(
                             new UserUh
                             {
                                 User = userToUpdate,
-                                UhID = uh.UhID
+                                UhID = uh.ID
                             });
                     }
                 }
                 else
                 {
-                    if (userUhs.Contains(uh.UhID))
+                    if (userUhs.Contains(uh.ID))
                     {
-                        UserUh uhToRemove = userToUpdate.UserUhs.SingleOrDefault(i => i.UhID == uh.UhID);
+                        UserUh uhToRemove = userToUpdate.UserUhs.SingleOrDefault(i => i.UhID == uh.ID);
                         _ = db.Remove(uhToRemove);
                     }
                 }

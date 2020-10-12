@@ -5,8 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Formacao2021.Shared.Models.Marcacoes
 {
-    [Table("MarcacoesIniciais")]
-    public class MarcacaoInicial : IBaseEntity
+    [Table("Marcacoes")]
+    public class Marcacao : IBaseEntity
     {
         [Key]
         public Guid ID { get; set; }
@@ -19,6 +19,9 @@ namespace Formacao2021.Shared.Models.Marcacoes
 
         [Required(ErrorMessage = "O campo Capacidade é obrigatório"), Display(Name = "Capacidade")]
         public int Capacidade { get; set; }
+
+        [Display(Name = "Observações")]
+        public string Observacoes { get; set; }
 
         #region Relações
         [Required, Display(Name = "Sala")]

@@ -1,8 +1,15 @@
 ﻿@page "/"
+@using Formacao2021.Client.Pages.Inscricoes
+
 <AuthorizeView>
     <Authorized>
         <h1>Olá @context.User.Identity.Name !!</h1>
         <p>Bem-Vindo.</p>
+
+        @*<Calendario />*@
+        <InscricoesData />
+
+
     </Authorized>
     <Authorizing>
         <h1>Loading ...</h1>

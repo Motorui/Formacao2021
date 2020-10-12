@@ -27,7 +27,7 @@ namespace Formacao2021.Server.Controllers.Tabelas
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            var uh = await _db.Uhs.FirstOrDefaultAsync(a => a.UhID == id);
+            var uh = await _db.Uhs.FirstOrDefaultAsync(a => a.ID == id);
             return Ok(uh);
         }
 
@@ -36,7 +36,7 @@ namespace Formacao2021.Server.Controllers.Tabelas
         {
             _db.Add(uh);
             await _db.SaveChangesAsync();
-            return Ok(uh.UhID);
+            return Ok(uh.ID);
         }
 
         [HttpPut]
@@ -50,7 +50,7 @@ namespace Formacao2021.Server.Controllers.Tabelas
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var uh = new Uh { UhID = id };
+            var uh = new Uh { ID = id };
             _db.Remove(uh);
             await _db.SaveChangesAsync();
             return NoContent();

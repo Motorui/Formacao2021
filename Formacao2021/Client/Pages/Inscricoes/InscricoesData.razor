@@ -1,0 +1,265 @@
+﻿@using System.Security.Claims
+@using System.Globalization
+@inject AppStateProvider authStateProvider
+@inject HttpClient http
+
+<Row>
+    <Column ColumnSize="ColumnSize.Is8.OnDesktop.Is12.OnMobile">
+        <Card>
+            <CardBody>
+                <CardTitle Size="5">Marcações</CardTitle>
+                <CardText>
+                    <SpinLoader IsLoading="@(uhs == null)">
+                        <LoadingTemplate>
+                            <div class="modal-overlay">
+                                <Chase Color="#ff0000" Size="60px" Center="true" />
+                            </div>
+                        </LoadingTemplate>
+                        <ContentTemplate>
+                            @if (uhs.Length == 0)
+                            {
+                                <p>
+                                    <text>O utilizador não tem uma Uh atribuida</text>
+                                </p>
+                            }
+                            else
+                            {
+                                <Row Margin="Margin.Is2">
+                                    <Column ColumnSize="ColumnSize.Is2">
+                                        @if (uhs != null)
+                                        {
+                                            <Select TValue="Guid" SelectedValue="@SelectedUhID" SelectedValueChanged="@OnSelectedUhChanged">
+                                                @foreach (var uh in uhs)
+                                                {
+                                                    <SelectItem Value="@uh.ID">@uh.IATA</SelectItem>
+                                                }
+                                            </Select>
+                                        }
+                                    </Column>
+                                    <Column ColumnSize="ColumnSize.Is4">
+                                        @if (meses != null)
+                                        {
+                                            <Select TValue="int" SelectedValue="@SelectedMes" SelectedValueChanged="@OnSelectedMesChanged">
+                                                @foreach (var mes in meses)
+                                                {
+                                                    <SelectItem Value="@mes.Key">@mes.Value</SelectItem>
+                                                }
+                                            </Select>
+                                        }
+                                    </Column>
+                                    <Column ColumnSize="ColumnSize.Is2">
+                                        @if (anos != null)
+                                        {
+                                            <Select TValue="int" SelectedValue="@SelectedAno" SelectedValueChanged="@OnSelectedAnoChanged">
+                                                @foreach (var ano in anos)
+                                                {
+                                                    <SelectItem Value="@ano.Key">@ano.Value</SelectItem>
+                                                }
+                                            </Select>
+                                        }
+                                    </Column>
+                                </Row>
+                                <Tabs SelectedTab="@selectedTab"
+                                      SelectedTabChanged="@OnSelectedTabChanged"
+                                      Pills="true"
+                                      TabPosition="TabPosition.Left">
+                                    <Items>
+                                        @foreach (var grupoCursos in MarcacaoPorCursos)
+                                        {
+                                            <Tab Name="@grupoCursos.Key.ToLower()">@grupoCursos.Key</Tab>
+                                        }
+                                    </Items>
+                                    <Content>
+                                        @foreach (var grupoCursos in MarcacaoPorCursos)
+                                        {
+                                            <TabPanel Name="@grupoCursos.Key.ToLower()" Margin="Margin.Is2">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHeaderCell>Data Início</TableHeaderCell>
+                                                            <TableHeaderCell>Data Fim</TableHeaderCell>
+                                                            <TableHeaderCell>Vagas</TableHeaderCell>
+                                                            <TableHeaderCell></TableHeaderCell>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        @foreach (var marcacaoData in grupoCursos.OrderBy(d => d.DataInicio))
+                                                        {
+                                                            var vagas = marcacaoData.Capacidade - inscricoes.Where(m => m.MarcacaoID == marcacaoData.ID).Count();
+                                                            <TableRow>
+                                                                <TableRowHeader>
+                                                                    @marcacaoData.DataInicio
+                                                                </TableRowHeader>
+                                                                <TableRowCell>
+                                                                    @marcacaoData.DataFim
+                                                                </TableRowCell>
+                                                                <TableRowCell>
+                                                                    @vagas de @marcacaoData.Capacidade
+                                                                </TableRowCell>
+                                                                <TableRowCell>
+                                                                    @if (vagas >= 1)
+                                                                    {
+                                                                        <Tooltip Text="Inscrever">
+                                                                            <Button Color="Color.Success" Clicked="@(() => Preparar(marcacaoData))"
+                                                                                    data-toggle="modal" data-target="#inscricaoModal">
+                                                                                <Icon Name="IconName.Add" />
+                                                                            </Button>
+                                                                        </Tooltip>
+                                                                        <Tooltip Text="Ver detalhes">
+                                                                            <Button Color="Color.Info" Clicked="@(() => Preparar(marcacaoData))"
+                                                                                    data-toggle="modal" data-target="#detalhesModal">
+                                                                                <Icon Name="IconName.Info" />
+                                                                            </Button>
+                                                                        </Tooltip>
+                                                                    }
+                                                                </TableRowCell>
+                                                            </TableRow>
+                                                        }
+                                                    </TableBody>
+                                                </Table>
+                                            </TabPanel>
+                                        }
+                                    </Content>
+                                </Tabs>
+                            }
+                        </ContentTemplate>
+                        <FaultedContentTemplate>
+                            <text>ERRO!</text>
+                        </FaultedContentTemplate>
+                    </SpinLoader>
+                </CardText>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+<InscricaoModal MarcacaoModel="MarcacaoModel"
+                   Uhs="uhs"
+                   Marcacoes="marcacoes"
+                   Formandos="formandos"
+                   Inscricoes="inscricoes"
+                   DataChanged="@DataChanged">
+    <CustomHeader>@customHeader</CustomHeader>
+</InscricaoModal>
+
+<DetalhesInscricaoModal MarcacaoModel="MarcacaoModel"
+                        Formandos="formandos" 
+                        Inscricoes="inscricoes"/>
+
+@code {
+    [CascadingParameter] Task<AuthenticationState> AuthenticationState { get; set; }
+
+    public Uh[] uhs { get; set; }
+    public Marcacao[] marcacoes { get; set; }
+    public Formando[] formandos { get; set; }
+    public Inscricao[] inscricoes { get; set; }
+
+    Guid SelectedUhID;
+    DateTime SelectedDate = DateTime.UtcNow;
+    int SelectedMes = DateTime.UtcNow.Month;
+    int SelectedAno = DateTime.UtcNow.Year;
+
+    Dictionary<int, string> meses = new Dictionary<int, string>();
+    Dictionary<int, int> anos = new Dictionary<int, int>();
+
+    string selectedTab = string.Empty;
+    string customHeader = string.Empty;
+
+    public Marcacao MarcacaoModel { get; set; }
+
+    IOrderedEnumerable<IGrouping<String, Marcacao>> MarcacaoPorCursos { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string uid = (await AuthenticationState).User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        RegisterUserUh[] userUhs = await http.GetFromJsonAsync<RegisterUserUh[]>("api/auth/getuseruhs");
+        List<Guid> ownedUhs = userUhs.Where(i => i.UserId == new Guid(uid)).Select(u => u.UhID).ToList();
+        Uh[] uhList = await http.GetFromJsonAsync<Uh[]>("api/uh");
+
+        uhs = uhList.Where(i => ownedUhs.Contains(i.ID)).ToArray();
+        selectedTab = uhs.Select(i => i.IATA).FirstOrDefault().ToLower();
+        marcacoes = await http.GetFromJsonAsync<Marcacao[]>("api/marcacao");
+        formandos = await http.GetFromJsonAsync<Formando[]>("api/formando");
+        inscricoes = await http.GetFromJsonAsync<Inscricao[]>("api/inscricao");
+
+        if (meses.Count < 1)
+        {
+            var dateFormatInfo = CultureInfo.GetCultureInfo("pt-PT").DateTimeFormat;
+            var monthNames = dateFormatInfo.MonthNames;
+
+            int mesId = 0;
+            foreach (var m in monthNames)
+            {
+                mesId = (mesId + 1);
+                meses.Add(mesId, m);
+            }
+            var r = meses.First(v => v.Value == "");
+            meses.Remove(r.Key);
+        }
+
+        if (anos.Count < 1)
+        {
+            int anoInicio = DateTime.UtcNow.AddYears(-5).Year;
+            for (int i = anoInicio; i < anoInicio + 10; i++)
+            {
+                anos.Add(i, i);
+            }
+        }
+
+        SetMarcacaoPorCursos(uhs.Select(u => u.ID).FirstOrDefault(), SelectedDate);
+    }
+
+    private void SetMarcacaoPorCursos(Guid id, DateTime date)
+    {
+        MarcacaoPorCursos = from marcacao
+            in marcacoes
+                            where marcacao.UhID == id &&
+                            marcacao.DataInicio.Month == date.Month &&
+                            marcacao.DataInicio.Year == date.Year
+                            group marcacao
+                                by marcacao.Curso.Nome
+            into grupoCursos
+                            orderby grupoCursos.Key
+                            select grupoCursos;
+    }
+
+    private void Preparar(Marcacao marcacaoModel)
+    {
+        customHeader = "Efetuar inscrição";
+        MarcacaoModel = marcacaoModel;
+    }
+
+    void OnSelectedUhChanged(Guid id)
+    {
+        SelectedUhID = id;
+        SetMarcacaoPorCursos(SelectedUhID, SelectedDate);
+        selectedTab = null;
+    }
+
+    void OnSelectedMesChanged(int mes)
+    {
+        SelectedMes = mes;
+        SelectedDate = new DateTime(SelectedDate.Year, SelectedMes, 1);
+        SetMarcacaoPorCursos(SelectedUhID, SelectedDate);
+        selectedTab = null;
+    }
+
+    void OnSelectedAnoChanged(int ano)
+    {
+        SelectedAno = ano;
+        SelectedDate = new DateTime(SelectedAno, SelectedDate.Month, 1);
+        SetMarcacaoPorCursos(SelectedUhID, SelectedDate);
+        selectedTab = null;
+    }
+
+    private void OnSelectedTabChanged(string name)
+    {
+        selectedTab = name;
+    }
+
+    private async void DataChanged()
+    {
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+}

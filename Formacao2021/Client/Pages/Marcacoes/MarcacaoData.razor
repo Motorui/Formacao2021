@@ -49,7 +49,7 @@
                                         }
                                         else
                                         {
-                                    <DataGrid TItem="MarcacaoInicial"
+                                    <DataGrid TItem="Marcacao"
                                               Data="@marcacoes"
                                               @bind-SelectedRow="@Model"
                                               Filterable="true"
@@ -62,7 +62,7 @@
                                               Striped="true"
                                               Bordered="true"
                                               Hoverable="true">
-                                        <DataGridCommandColumn TItem="MarcacaoInicial">
+                                        <DataGridCommandColumn TItem="Marcacao">
                                             <NewCommandTemplate>
                                                 <Tooltip Text="Criar Marcação">
                                                     <Button Color="Color.Success" Clicked="@(() => PrepareToAdd())"
@@ -93,24 +93,25 @@
                                                 </Button>
                                             </ClearFilterCommandTemplate>
                                         </DataGridCommandColumn>
-                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.ID)" Caption="#" Sortable="false" Displayable="false" />
-                                        <DataGridDateColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.DataInicio)" Caption="Início" Editable="true" />
-                                        <DataGridDateColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.DataFim)" Caption="Fim" Editable="true" />
-                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.CursoID)" Caption="Curso" Editable="true">
+                                        <DataGridColumn TItem="Marcacao" Field="@nameof(Marcacao.ID)" Caption="#" Sortable="false" Displayable="false" />
+                                        <DataGridDateColumn TItem="Marcacao" Field="@nameof(Marcacao.DataInicio)" Caption="Início" Editable="true" />
+                                        <DataGridDateColumn TItem="Marcacao" Field="@nameof(Marcacao.DataFim)" Caption="Fim" Editable="true" />
+                                        <DataGridColumn TItem="Marcacao" Field="@nameof(Marcacao.CursoID)" Caption="Curso" Editable="true">
                                             <DisplayTemplate>
                                                 @context.Curso?.Nome
                                             </DisplayTemplate>
                                         </DataGridColumn>
-                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.SalaID)" Caption="Sala" Editable="true">
+                                        <DataGridColumn TItem="Marcacao" Field="@nameof(Marcacao.SalaID)" Caption="Sala" Editable="true">
                                             <DisplayTemplate>
                                                 @context.Sala?.Nome
                                             </DisplayTemplate>
                                         </DataGridColumn>
-                                        <DataGridColumn TItem="MarcacaoInicial" Field="@nameof(MarcacaoInicial.UhID)" Caption="Sala" Editable="true">
+                                        <DataGridColumn TItem="Marcacao" Field="@nameof(Marcacao.UhID)" Caption="UH" Editable="true">
                                             <DisplayTemplate>
-                                                @context.Uh?.UhIATA
+                                                @context.Uh?.IATA
                                             </DisplayTemplate>
                                         </DataGridColumn>
+                                        <DataGridColumn TItem="Marcacao" Field="@nameof(Marcacao.Observacoes)" Caption="Observações" Sortable="false" Editable="true" />
                                     </DataGrid>
                                         }
                                     </ContentTemplate>
@@ -142,15 +143,15 @@
 </AuthorizeView>
 
 @code {
-    MarcacaoInicial[] marcacoes;
-    MarcacaoInicial Model = new MarcacaoInicial();
+    Marcacao[] marcacoes;
+    Marcacao Model = new Marcacao();
     Guid MarcacaoToDelete { get; set; }
     string itemToDelete { get; set; }
     string customHeader = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        marcacoes = await client.GetFromJsonAsync<MarcacaoInicial[]>("api/marcacao");
+        marcacoes = await client.GetFromJsonAsync<Marcacao[]>("api/marcacao");
     }
 
     private async void DataChanged()
@@ -161,17 +162,17 @@
 
     private void PrepareToAdd()
     {
-        Model = new MarcacaoInicial();
+        Model = new Marcacao();
         customHeader = "Criar Marcação";
     }
 
-    private void PrepareForEdit(MarcacaoInicial marcacao)
+    private void PrepareForEdit(Marcacao marcacao)
     {
         customHeader = "Editar Marcação";
         Model = marcacao;
     }
 
-    private void PrepareForDelete(MarcacaoInicial marcacao)
+    private void PrepareForDelete(Marcacao marcacao)
     {
         MarcacaoToDelete = marcacao.ID;
         itemToDelete = marcacao.Curso.Nome + " de " + marcacao.DataInicio + " a " + marcacao.DataFim;
@@ -185,7 +186,7 @@
         {
             await js.InvokeAsync<object>("global.closeModal", "confirmDeleteModal");
 
-            Model = new MarcacaoInicial();
+            Model = new Marcacao();
             itemToDelete = string.Empty;
 
             await Task.Delay(100);
@@ -195,7 +196,7 @@
         await OnInitializedAsync();
     }
 
-    void OnSelectedRowStyling(MarcacaoInicial marcacao, DataGridRowStyling styling)
+    void OnSelectedRowStyling(Marcacao marcacao, DataGridRowStyling styling)
     {
         styling.Background = Background.Light;
     }

@@ -37,7 +37,7 @@ namespace Formacao2021.Client.Services
             return new AuthenticationState(new ClaimsPrincipal(identity));
         }
         #region User
-        private async Task<CurrentUser> GetCurrentUser()
+        public async Task<CurrentUser> GetCurrentUser()
         {
             if (_currentUser != null && _currentUser.IsAuthenticated) return _currentUser;
             _currentUser = await api.CurrentUserInfo();

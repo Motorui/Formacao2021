@@ -94,6 +94,7 @@
                                             </ClearFilterCommandTemplate>
                                         </DataGridCommandColumn>
                                         <DataGridColumn TItem="Formando" Field="@nameof(Formando.ID)" Caption="#" Sortable="false" Displayable="false" />
+                                        <DataGridNumericColumn TItem="Formando" Field="@nameof(Formando.Numero)" Caption="Num." Editable="true" />
                                         <DataGridColumn TItem="Formando" Field="@nameof(Formando.Nome)" Caption="Nome" Editable="true">
                                             <DisplayTemplate>
                                                 @{
@@ -103,17 +104,9 @@
                                                 }
                                             </DisplayTemplate>
                                         </DataGridColumn>
-                                        <DataGridColumn TItem="Formando" Field="@nameof(Formando.Interno)" Caption="Interno" Editable="true">
+                                        <DataGridColumn TItem="Formando" Field="@nameof(Formando.UhID)" Caption="UH" Editable="true">
                                             <DisplayTemplate>
-                                                @{
-                                                    string interno = (context as Formando)?.Interno == true ? "Interno" : "Externo";
-                                                    @($"{interno}")
-                                                }
-                                            </DisplayTemplate>
-                                        </DataGridColumn>
-                                        <DataGridColumn TItem="Formando" Field="@nameof(Formando.EmpresaID)" Caption="Empresa" Editable="true">
-                                            <DisplayTemplate>
-                                                @context.Empresa?.Nome
+                                                @context.Uh?.IATA
                                             </DisplayTemplate>
                                         </DataGridColumn>
                                         <DataGridColumn TItem="Formando" Field="@nameof(Formando.DepartamentoID)" Caption="Departamento" Editable="true">

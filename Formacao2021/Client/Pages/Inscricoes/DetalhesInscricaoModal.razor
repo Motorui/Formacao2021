@@ -1,0 +1,90 @@
+﻿@using Blazorise.Components
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject HttpClient http
+@inject IJSRuntime js
+
+<Modal @ref="@Modal" role="dialog" id="detalhesModal">
+    <ModalBackdrop />
+    <ModalContent Centered="true" Size="ModalSize.Default">
+        <ModalHeader>
+            <ModalTitle>
+                @if (MarcacaoModel != null)
+                {
+                    @MarcacaoModel.Curso.Nome<br />
+                    <small>
+                        de @MarcacaoModel.DataInicio a @MarcacaoModel.DataFim
+                    </small>
+                }
+            </ModalTitle>
+            <CloseButton Clicked="@(() => CloseModal("detalhesModal"))" />
+        </ModalHeader>
+        <ModalBody>
+            <Row>
+                <Column ColumnSize="ColumnSize.Is12">
+                    <Table>
+                        <TableBody>
+                            @if (formandosInscritos != null)
+                            {
+                                foreach (var item in formandosInscritos)
+                                {
+                                    <TableRow>
+                                        <TableRowHeader>@item.Departamento.Nome</TableRowHeader>
+                                        <TableRowCell>@item.Nome</TableRowCell>
+                                        <TableRowCell>
+                                            <Tooltip Text="Editar">
+                                                <Button Color="Color.Info" Clicked="@(() => Preparar(MarcacaoModel))"
+                                                        data-toggle="modal" data-target="#inscricaoModal">
+                                                    <Icon Name="IconName.Pen" />
+                                                </Button>
+                                            </Tooltip>
+                                        </TableRowCell>
+                                    </TableRow>
+                                }
+                            }
+                        </TableBody>
+                    </Table>
+                </Column>
+            </Row>
+        </ModalBody>
+        <ModalFooter>
+            <Tooltip Text="Fechar">
+                <Button Color="Color.Warning" Clicked="@(() => CloseModal("detalhesModal"))">
+                    <Icon Name="IconName.StepBackward" /> Cancelar
+                </Button>
+            </Tooltip>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal Modal;
+    [Parameter] public Marcacao MarcacaoModel { get; set; }
+    [Parameter] public Formando[] Formandos { get; set; }
+    [Parameter] public Inscricao[] Inscricoes { get; set; }
+    Formando[] formandosInscritos;
+    string customHeader = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (MarcacaoModel != null)
+        {
+            var inscricoes = Inscricoes.Where(m => m.MarcacaoID == MarcacaoModel.ID);
+            Guid[] idFormandos = inscricoes.Select(f => f.FormandoID).ToArray();
+            if (idFormandos.Length >= 1)
+            {
+                formandosInscritos = Formandos.Where(i => idFormandos.Contains(i.ID)).ToArray();
+            }
+        }
+    }
+
+    private void Preparar(Marcacao marcacaoModel)
+    {
+        customHeader = "Efetuar inscrição";
+        MarcacaoModel = marcacaoModel;
+    }
+
+    private async Task CloseModal(string modalId)
+    {
+        await js.InvokeAsync<object>("global.closeModal", modalId);
+    }
+}
